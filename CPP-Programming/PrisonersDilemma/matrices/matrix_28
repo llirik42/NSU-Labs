@@ -1,0 +1,10 @@
+// Incorrect number (07) in first row (it's supposed that numbers must be "0" or non-zero)
+
+C C C 07 07 07
+C C D 3 3 9
+C D C 3 9 3
+D C C 9 3 3
+C D D 0 5 5
+D C D 5 0 5
+D D C 5 5 0
+D D D 1 1 1

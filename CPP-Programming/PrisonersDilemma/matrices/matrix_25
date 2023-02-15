@@ -1,0 +1,10 @@
+// Number "00" in rows
+
+C C C 7 7 7
+C C D 3 3 9
+C D C 3 9 3
+D C C 9 3 3
+C D D 00 5 5
+D C D 5 00 5
+D D C 5 5 00
+D D D 1 1 1

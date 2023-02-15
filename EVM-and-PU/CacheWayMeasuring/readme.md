@@ -1,0 +1,1 @@
+[Задание](https://ssd.sscc.ru/sites/default/files/content/attach/310/computerlab9.pdf)

@@ -1,0 +1,10 @@
+// 8 rows, but first row is doubled so one row is missing
+
+C C C 7 7 7
+C C C 7 7 7
+C D C 3 9 3
+D C C 9 3 3
+C D D 0 5 5
+D C D 5 0 5
+D D C 5 5 0
+D D D 1 1 1

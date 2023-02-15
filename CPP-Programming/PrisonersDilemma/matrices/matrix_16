@@ -1,0 +1,10 @@
+// Incorrect number of letters in a row (2 instead of 3)
+
+C C 8 8 8
+C C D 6 6 10
+C D C 6 10 6
+D C C 10 6 6
+C D D 4 7 7
+D C D 7 4 7
+D D C 7 7 4
+D D D 5 5 5
