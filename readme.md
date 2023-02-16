@@ -1,4 +1,4 @@
-Лабораторные работы, выполненные в период обучения в НГУ
+Практические работы, выполненные в период обучения в НГУ
 
 * [Программирование на C](https://github.com/llirik42/NSU-Education/tree/main/C-programming)
 * [Цифровая схемотехника](https://github.com/llirik42/NSU-Education/tree/main/Digital-Circuitry)
