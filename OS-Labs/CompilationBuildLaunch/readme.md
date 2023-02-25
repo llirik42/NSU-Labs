@@ -10,4 +10,4 @@
 	2. где находится код этой функции?
 3. [Написать динамическую библиотеку с функцией print_hello_from_dynamic_lib() и использовать ее:](https://github.com/llirik42/NSU-Education/tree/main/OS-Labs/CompilationBuildLaunch/src/3)
 	1. посмотреть состояние функции print_hello_from_dynamic_lib() в получившимся исполняемом файле. Объяснить увиденное.
-4. [Написать динамическую библиотеку с функцией print_hello_from_dynamic_runtime_lib() и загрузить ее с помощью dlopen(3). Объяснить что происходит](https://github.com/llirik42/NSU-Education/tree/main/OS-Labs/CompilationBuildLaunch/src/1).
+4. [Написать динамическую библиотеку с функцией print_hello_from_dynamic_runtime_lib() и загрузить ее с помощью dlopen(3). Объяснить что происходит](https://github.com/llirik42/NSU-Education/tree/main/OS-Labs/CompilationBuildLaunch/src/4).
