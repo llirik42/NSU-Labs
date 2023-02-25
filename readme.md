@@ -5,4 +5,4 @@
 * [Программирование на C++](https://github.com/llirik42/NSU-Education/tree/main/CPP-Programming)
 * [ЭВМ и перифирийные устройства](https://github.com/llirik42/NSU-Education/tree/main/EVM-and-PU)
 * [Основы параллельного программирования](https://github.com/llirik42/NSU-Education/tree/main/ParallelProgramming)
-* [Операционные системы](https://github.com/llirik42/NSU-Education/tree/main/OS-Labs)
+* [Операционные системы](https://github.com/llirik42/NSU-Education/tree/main/OS)
