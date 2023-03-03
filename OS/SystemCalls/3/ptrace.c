@@ -7,6 +7,10 @@
 
 #define CHILD_PROCESS_ID 0
 
+#define ERROR (-1)
+
+#define HANDLE_PTRACE(CALL) {if (CALL == ERROR) {printf("Error occured\n"); return ERROR;}}
+
 char* get_syscall_name(unsigned long long code) {
   switch (code) {
     case 0: return "read";
@@ -374,33 +378,34 @@ char* get_syscall_name(unsigned long long code) {
   }
 }
 
-void execute_child() {
-  ptrace(PTRACE_TRACEME, CHILD_PROCESS_ID, NULL, NULL);
+int execute_child() {
+  HANDLE_PTRACE(ptrace(PTRACE_TRACEME, CHILD_PROCESS_ID, NULL, NULL))
   execl("/bin/echo", "/bin/echo", "----------Hello, world! (from the forked process)----------", NULL);
+  return 9;
 }
 
 int main() {
   pid_t process_id = fork();
 
   if (process_id == CHILD_PROCESS_ID) {
-    execute_child();
+    return execute_child();
   }
   else {
     int status;
     wait(&status);
 
-    ptrace(PTRACE_SETOPTIONS, process_id, NULL, PTRACE_O_TRACESYSGOOD); // Set some magic
+    HANDLE_PTRACE(ptrace(PTRACE_SETOPTIONS, process_id, NULL, PTRACE_O_TRACESYSGOOD)) // Set some magic
 
     // While tracee hasn't completed
     while (!WIFEXITED(status)) {
       struct user_regs_struct state;
       
-      ptrace(PTRACE_SYSCALL, process_id, NULL, NULL); // Restart tracee
+      HANDLE_PTRACE(ptrace(PTRACE_SYSCALL, process_id, NULL, NULL)) // Restart tracee
       wait(&status);
       
       // If the child process is stopped and syscall occurred (int 80)
       if (WIFSTOPPED(status) && WSTOPSIG(status) & 0x80) {
-        ptrace(PTRACE_GETREGS, process_id, NULL, &state); // Copy the tracee's registers to the state
+        HANDLE_PTRACE(ptrace(PTRACE_GETREGS, process_id, NULL, &state)) // Copy the tracee's registers to the state
         printf("%s\n", get_syscall_name(state.orig_rax)); 
       }
     }
