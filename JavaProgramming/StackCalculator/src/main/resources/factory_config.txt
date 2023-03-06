@@ -1,0 +1,11 @@
++ ru.nsu.kondrenko.model.instructions.AddInstruction
+- ru.nsu.kondrenko.model.instructions.SubtractInstruction
+* ru.nsu.kondrenko.model.instructions.MultiplyInstruction
+/ ru.nsu.kondrenko.model.instructions.DivideInstruction
+SQRT ru.nsu.kondrenko.model.instructions.SqrtInstruction
+PUSH ru.nsu.kondrenko.model.instructions.PushInstruction
+POP ru.nsu.kondrenko.model.instructions.PopInstruction
+PRINT ru.nsu.kondrenko.model.instructions.PrintInstruction
+DEFINE ru.nsu.kondrenko.model.instructions.DefineInstruction
+HELP ru.nsu.kondrenko.model.instructions.HelpInstruction
+EXIT ru.nsu.kondrenko.model.instructions.ExitInstruction
