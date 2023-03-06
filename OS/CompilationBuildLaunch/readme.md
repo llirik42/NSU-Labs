@@ -2,7 +2,7 @@
 
 1. Написать [программу](https://github.com/llirik42/NSU-Education/tree/main/OS/CompilationBuildLaunch/src/1) которая выводит фразу “Hello, world!”:
 	1. получить исполняемый файл;
-	2. посмотреть unresolved symbols (*puts*, *printf*) с помощью *nm*;
+	2. посмотреть unresolved symbols (*puts*, *printf*) с помощью nm*;
 	3. посмотреть зависимости (*ldd*);
 	4. запустить.
 2. Написать [статическую библиотеку](https://github.com/llirik42/NSU-Education/tree/main/OS/CompilationBuildLaunch/src/2) с функцией *print_hello_from_static()* и использовать ее:
