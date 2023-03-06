@@ -1,9 +1,9 @@
 # Задание
 1. Проведите следующие эксперименты:
-    1. запустите [программу](https://github.com/llirik42/NSU-Education/tree/main/OS/SystemCalls/1.i.a), печатающую "Hello, world!" из предыдущей задачи под *strace*:
+    1. запустите [программу](https://github.com/llirik42/NSU-Education/tree/main/OS/SystemCalls/src/1.i.a), печатающую "Hello, world!" из предыдущей задачи под *strace*:
         1. обратите внимание какие системные вызовы были вызваны в процессе исполнения программы. Чем обусловлено такое количество системных вызовов. Какой системный вызов используется для вывода “Hello, world!”? Изучите этот вызов и разберитесь что он принимает и возвращает.
-        2. [используйте](https://github.com/llirik42/NSU-Education/tree/main/OS/SystemCalls/1.i.b) этот сискол в программе вместо *printf()*]. Убедитесь что этот вызов присутствует в выводе *strace*.
-        3. [напишите](https://github.com/llirik42/NSU-Education/tree/main/OS/SystemCalls/1.i.c) свою обертку над этим сисколом]. Для этого используйте функцию *syscall()* из *libc*. Также проверьте вывод *strace*.
+        2. [используйте](https://github.com/llirik42/NSU-Education/tree/main/OS/SystemCalls/src/1.i.b) этот сискол в программе вместо *printf()*]. Убедитесь что этот вызов присутствует в выводе *strace*.
+        3. [напишите](https://github.com/llirik42/NSU-Education/tree/main/OS/SystemCalls/src/1.i.c) свою обертку над этим сисколом]. Для этого используйте функцию *syscall()* из *libc*. Также проверьте вывод *strace*.
     2. Запустите под strace команду **‘wget kernel.org’** (если нет *wget*, используйте *curl*). Получите статистику использования системных вызовов порожденным процессом.
-2. Разберитесь как устроена функция *syscall()*. [Напишите код](https://github.com/llirik42/NSU-Education/tree/main/OS/SystemCalls/2), который напечатает "Hello, world!" без использования функции *syscall()*].
-3. Разберитесь как работает системный вызов *ptrace(2)* и напишите [программу](https://github.com/llirik42/NSU-Education/tree/main/OS/SystemCalls/3), которая породит процесс и выведет все системные вызовы дочернего процесса].
+2. Разберитесь как устроена функция *syscall()*. Напишите [код](https://github.com/llirik42/NSU-Education/tree/main/OS/SystemCalls/src/2), который напечатает "Hello, world!" без использования функции *syscall()*].
+3. Разберитесь как работает системный вызов *ptrace(2)* и напишите [программу](https://github.com/llirik42/NSU-Education/tree/main/OS/SystemCalls/src/3), которая породит процесс и выведет все системные вызовы дочернего процесса].
