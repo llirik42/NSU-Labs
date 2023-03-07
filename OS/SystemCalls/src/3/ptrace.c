@@ -387,14 +387,16 @@ void prepare_args(int argc, char** argv) {
 int execute_child(int argc, char** argv) {
   prepare_args(argc, argv);
   HANDLE_PTRACE(ptrace(PTRACE_TRACEME))
+  //process_mrelease(0, 0);
   kill(getpid(), SIGSTOP);
   return execv(argv[0], argv);
 }
 
 int execute_parent(pid_t process_id) {
-  int status;
-  
-  waitpid(process_id, &status, 0);
+  int status;  
+  wait(&status);
+
+  //waitpid(process_id, &status, 0);
   HANDLE_PTRACE(ptrace(PTRACE_SETOPTIONS, process_id, NULL, PTRACE_O_TRACESYSGOOD))
     
   // While tracee hasn't completed
@@ -402,7 +404,7 @@ int execute_parent(pid_t process_id) {
     struct user_regs_struct state;
     
     HANDLE_PTRACE(ptrace(PTRACE_SYSCALL, process_id, NULL, NULL)) // Set some magic options
-    waitpid(process_id, &status, 0);
+    wait(&status);
         
     // If the child process is stopped and syscall occurred (int 80)
     if (WIFSTOPPED(status) && WSTOPSIG(status) & 0x80) {
@@ -411,9 +413,11 @@ int execute_parent(pid_t process_id) {
         
       // Restart tracee
       HANDLE_PTRACE(ptrace(PTRACE_SYSCALL, process_id, NULL, NULL))
-      waitpid(process_id, &status, 0);
+      wait(&status);
     }
   }
+
+  wait(&status);
 
   return 0;
 }
