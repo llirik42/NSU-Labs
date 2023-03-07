@@ -4,6 +4,6 @@
 * [Цифровая схемотехника](Digital-Circuitry)
 * [Программирование на C++](CPP-Programming)
 * [ЭВМ и перифирийные устройства](Сomputers-and-Peripherals)
-* [Основы параллельного программирования](ParallelProgramming)
+* [Основы параллельного программирования](Parallel-Programming)
 * [Операционные системы](OS)
 * [Программирование на Java](Java-Programming)
