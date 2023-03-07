@@ -387,7 +387,6 @@ void prepare_args(int argc, char** argv) {
 int execute_child(int argc, char** argv) {
   prepare_args(argc, argv);
   HANDLE_PTRACE(ptrace(PTRACE_TRACEME))
-  //process_mrelease(0, 0);
   kill(getpid(), SIGSTOP);
   return execv(argv[0], argv);
 }
