@@ -1,46 +1,158 @@
-#include <stdio.h>
 #include <mpi/mpi.h>
 #include <malloc.h>
-#include <stdbool.h>
-
-#include "config.h"
 #include "utils.h"
 
-void print_vector(double* vector, unsigned int length) {
-    for (unsigned int i = 0; i < length; i++) {
-        printf("%f ", vector[i]);
+#define ROOT_RANK 0
+
+struct IterationsData {
+    double* local_A;
+    double* local_b;
+    double* x0;
+    double epsilon;
+    unsigned int Nx;
+    unsigned int Ny;
+    unsigned int max_iterations_count;
+    int* sends_count; 
+    int* displs;
+};
+
+unsigned int iterate(const struct IterationsData* iterations_data, double* local_result) {
+    const double* local_A = iterations_data->local_A;
+    const double* local_b = iterations_data->local_b;
+    const double* x0 = iterations_data->x0;
+    const double epsilon = iterations_data->epsilon;
+    const unsigned int Nx = iterations_data->Nx;
+    const unsigned int Ny = iterations_data->Ny;
+    const unsigned int max_iterations_count = iterations_data->max_iterations_count;
+    const int* sends_count = iterations_data->sends_count;
+    const int* displs = iterations_data->displs;
+
+    unsigned int iterations_count = 0;
+
+    double* global_z = create_vector(Nx);
+    double* local_r = create_vector(Ny);
+    double* local_z = create_vector(Ny);
+    double* local_A_z = create_vector(Ny);
+    double* buffer = create_vector(Ny);
+
+    // Calculating |b|^2 * epsilon^2
+    const double local_b_nrm_squared = ddot(local_b, local_b, Ny);
+    double b_nrm_squared;
+    MPI_Allreduce(&local_b_nrm_squared,
+                  &b_nrm_squared,
+                  1,
+                  MPI_DOUBLE,
+                  MPI_SUM,
+                  MPI_COMM_WORLD);
+    const double b_nrm_epsilon_squared = b_nrm_squared * epsilon * epsilon;
+
+    // Calculating r_0 and z_0
+    multiply_vector_by_matrix(local_A, x0, Nx, Ny, local_r);
+    inverse_subtract_vectors(local_r, local_b, Ny);
+    copy_vector(local_r, local_z, Ny);
+
+    // Iterative cycle 
+    while(1) {
+        // Calculating (r_n, r_n)
+        const double local_r_nrm_squared = ddot(local_r, local_r, Ny);
+        double r_nrm_squared;
+        MPI_Allreduce(&local_r_nrm_squared,
+                      &r_nrm_squared,
+                      1,
+                      MPI_DOUBLE,
+                      MPI_SUM,
+                      MPI_COMM_WORLD);
+
+        // Checking condition of exit 
+        if (r_nrm_squared < b_nrm_epsilon_squared || iterations_count > max_iterations_count) {
+            break;
+        }
+
+        // Gathering the whole z_n
+        MPI_Allgatherv(local_z,
+                       Ny,
+                       MPI_DOUBLE,
+                       global_z,
+                       sends_count,
+                       displs,
+                       MPI_DOUBLE,
+                       MPI_COMM_WORLD);
+
+        // Calculating A x z_n
+        multiply_vector_by_matrix(local_A, global_z, Nx, Ny, local_A_z);
+
+        // Calculating alpha
+        const double alpha_numerator = r_nrm_squared;
+        const double local_alpha_denominator = ddot(local_A_z, local_z, Ny);
+        double alpha_denominator;        
+        MPI_Allreduce(&local_alpha_denominator,
+                      &alpha_denominator,
+                      1,
+                      MPI_DOUBLE,
+                      MPI_SUM,
+                      MPI_COMM_WORLD);
+        const double alpha = alpha_numerator / alpha_denominator;
+
+        // Calculating x_{n+1}
+        multyply_vector_by_scalar2(local_z, alpha, Ny, buffer);
+        add_vectors(local_result, buffer, Ny);
+
+        // Calculating r_{n+1}
+        multyply_vector_by_scalar2(local_A_z, alpha, Ny, buffer);
+        subtract_vectors(local_r, buffer, Ny);
+
+        // Calculating beta
+        const double beta_denominator = r_nrm_squared;
+        const double local_beta_numerator = ddot(local_r, local_r, Ny);
+        double beta_numerator;
+        MPI_Allreduce(&local_beta_numerator,
+                      &beta_numerator,
+                      1,
+                      MPI_DOUBLE,
+                      MPI_SUM,
+                      MPI_COMM_WORLD);
+        const double beta = beta_numerator / beta_denominator;
+
+        // Calculating z_{n+1}
+        multyply_vector_by_scalar(local_z, beta, Ny);
+        add_vectors(local_z, local_r, Ny);
+    
+        iterations_count++;
     }
-    printf("\n");
+
+    free(global_z);
+    free(local_r);
+    free(local_z);
+    free(local_A_z);
+    free(buffer);
+
+    return iterations_count;
 }
 
 int main(int argc, char** argv) {
-	int rank, size;
     MPI_Init(&argc, &argv);
+    
+    const double start_time = MPI_Wtime();
 
+    int rank, size;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    unsigned int Nx;
-    unsigned int Ny;
-
-    int* vector_sends_count = NULL;
-    int* matrix_sends_count = NULL;
-    int* vector_displs = NULL;
-    int* matrix_displs = NULL;
-    
     double* A = NULL;
     double* b = NULL;
     double* x0 = NULL;
-    double epsilon = 0;
+    double epsilon;
+    unsigned int Nx;
+    unsigned int Ny;
+    unsigned int max_iterations_count;
 
+    int* vector_sends_count = create_int_vector(size);
+    int* vector_displs = create_int_vector(size);
+    int* matrix_sends_count = NULL;
+    int* matrix_displs = NULL;
 
-    // double* x_current = NULL;
-    // double* x_next = NULL;
-    // double* r_current = NULL;
-    // double* r_next = NULL;
-    // double* z_current = NULL;
-    // double* z_next = NULL;
-
+    double* result = NULL;
+    
     if (rank == ROOT_RANK) {
         const struct InputData input_data = create_input_data();
 
@@ -48,44 +160,28 @@ int main(int argc, char** argv) {
         b = input_data.b;
         x0 = input_data.x0;
         epsilon = input_data.epsilon;
-        const unsigned int N = input_data.N;
+        Nx = input_data.n;
+        max_iterations_count = input_data.max_iterations_count;
 
-        vector_sends_count = malloc(size * sizeof(int));
-        matrix_sends_count = malloc(size * sizeof(int));
-        vector_displs = malloc(size * sizeof(int));
-        matrix_displs = malloc(size * sizeof(int));
+        matrix_sends_count = create_int_vector(size);
+        matrix_displs = create_int_vector(size);
 
-        // x_current = create_vector(N);
-        // x_next = create_vector(N);
-        // r_current = create_vector(N);
-        // r_next = create_vector(N);
-        // z_current = create_vector(N);
-        // z_next = create_vector(N);
-
-        //copy_vector(x_current, x0, N);
+        result = create_vector(Nx);
 
         for (int i = 0; i < size; i++) {
-            int k1 = i * N / size;
-            int k2 = (i + 1) * N / size;
+            const int k1 = i * Nx / size;
+            const int k2 = (i + 1) * Nx / size;
 
             vector_sends_count[i] = k2 - k1;
-            matrix_sends_count[i] = vector_sends_count[i] * N;
+            matrix_sends_count[i] = vector_sends_count[i] * Nx;
             vector_displs[i] = k1;    
-            matrix_displs[i] = vector_displs[i] * N;
+            matrix_displs[i] = vector_displs[i] * Nx;        
         }
-
-        Nx = N;
     }
     
     MPI_Bcast(&Nx, 
               1, 
               MPI_UNSIGNED, 
-              ROOT_RANK, 
-              MPI_COMM_WORLD);
-
-    MPI_Bcast(&epsilon, 
-              1, 
-              MPI_DOUBLE, 
               ROOT_RANK, 
               MPI_COMM_WORLD);
 
@@ -98,14 +194,36 @@ int main(int argc, char** argv) {
                 ROOT_RANK,
                 MPI_COMM_WORLD);
 
+    MPI_Bcast(&max_iterations_count, 
+              1, 
+              MPI_UNSIGNED, 
+              ROOT_RANK, 
+              MPI_COMM_WORLD);
+
+    MPI_Bcast(&epsilon, 
+              1, 
+              MPI_DOUBLE, 
+              ROOT_RANK, 
+              MPI_COMM_WORLD);
+
     double* local_A = create_matrix(Nx, Ny);
     double* local_b = create_vector(Ny);
-    double* local_x0 = create_vector(Ny);
-
+    double* local_result = create_vector(Ny);
     if (rank != ROOT_RANK) {
         x0 = create_vector(Nx);
-        //z_current = create_vector(Nx);
     }
+
+    MPI_Bcast(vector_sends_count, 
+              size, 
+              MPI_INT, 
+              ROOT_RANK, 
+              MPI_COMM_WORLD);
+
+    MPI_Bcast(vector_displs, 
+              size, 
+              MPI_INT, 
+              ROOT_RANK, 
+              MPI_COMM_WORLD);
 
     MPI_Bcast(x0, 
               Nx, 
@@ -137,180 +255,58 @@ int main(int argc, char** argv) {
                  vector_sends_count,
                  vector_displs,
                  MPI_DOUBLE,
-                 local_x0,
+                 local_result,
                  Ny,
                  MPI_DOUBLE,
                  ROOT_RANK,
                  MPI_COMM_WORLD);
 
-    double b_nrm_squared;
-    double local_b_nrm_squared = calculate_nrm_squared(local_b, Ny);
+    const struct IterationsData iterarations_data = {
+        .local_A = local_A,
+        .local_b = local_b,
+        .x0 = x0,
+        .epsilon = epsilon,
+        .Nx = Nx,
+        .Ny = Ny,
+        .max_iterations_count = max_iterations_count,
+        .sends_count = vector_sends_count,
+        .displs = vector_displs
+    };
 
-    MPI_Allreduce(&local_b_nrm_squared,
-                  &b_nrm_squared,
-                  1,
-                  MPI_DOUBLE,
-                  MPI_SUM,
-                  MPI_COMM_WORLD);
+    const unsigned int iterations_count = iterate(&iterarations_data, local_result);
 
-    double epislon_b_nrm_squared = b_nrm_squared * epsilon * epsilon;
+    // Gather final result
+    MPI_Gatherv(local_result, 
+                Ny,
+                MPI_DOUBLE,
+                result,
+                vector_sends_count,
+                vector_displs,
+                MPI_DOUBLE,
+                ROOT_RANK,
+                MPI_COMM_WORLD);
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    if (rank == ROOT_RANK) {
+        const double end_time = MPI_Wtime();
+        print_result_info(start_time * 1000,
+                          end_time * 1000,
+                          iterations_count,
+                          A,
+                          b,
+                          result);
+    }
 
-    printf("%.20f\n", epislon_b_nrm_squared);
-
-
-
-    // double* local_x_current = create_vector(Ny);
-    // double* local_x_next = create_vector(Ny);
-    // double* local_r_current = create_vector(Ny);
-    // double* local_r_next = create_vector(Ny);
-    // double* local_z_current = create_vector(Ny);
-    // double* local_z_next = create_vector(Ny);
-    // double* local_A_x0 = create_vector(Ny);
-    // double* local_A_z_n = create_vector(Ny);
-    // double* local_alpha_z_n = create_vector(Ny);
-    // double* local_alpha_A_z_n = create_vector(Ny);
-    // double* local_beta_z_n = create_vector(Ny);
-
-    // double numerator = 0;
-    // double denominator = 0;
-
-    // double local_numerator;
-    // double local_denominator;
-
-    // copy_vector(local_x_current, local_x0, Ny);
-    // multiply_vector_by_matrix(local_A, x0, Nx, Ny, local_A_x0);
-
-    // subtract_vectors(local_b, local_A_x0, Ny, local_r_current);
-    // copy_vector(local_z_current, local_r_current, Ny);
-
-    // MPI_Gatherv(local_z_current, 
-    //             Ny,
-    //             MPI_DOUBLE,
-    //             z_current,
-    //             vector_sends_count,
-    //             vector_displs,
-    //             MPI_DOUBLE,
-    //             ROOT_RANK,
-    //             MPI_COMM_WORLD);
-
-    // MPI_Bcast(z_current,
-    //           Nx, 
-    //           MPI_DOUBLE, 
-    //           ROOT_RANK, 
-    //           MPI_COMM_WORLD);
-
-    // while (f) {
-    //     multiply_vector_by_matrix(local_A, z_current, Nx, Ny, local_A_z_n);
-    //     local_numerator = ddot(local_r_current, local_r_current, Ny);
-    //     local_denominator = ddot(local_A_z_n, local_z_current, Ny);
-
-    //     MPI_Allreduce(&local_numerator,
-    //                   &numerator,
-    //                   1,
-    //                   MPI_DOUBLE,
-    //                   MPI_SUM,
-    //                   MPI_COMM_WORLD);
-
-    //     MPI_Allreduce(&local_denominator,
-    //                   &denominator,
-    //                   1,
-    //                   MPI_DOUBLE,
-    //                   MPI_SUM,
-    //                   MPI_COMM_WORLD);
-
-    //     double alpha = numerator / denominator;
-
-
-
-
-    //     multyply_vector_by_scalar(local_z_current, alpha, Ny, local_alpha_z_n);
-    //     add_vectors(local_x_current, local_alpha_z_n, Ny, local_x_next);
-
-
-
-    //     multyply_vector_by_scalar(local_A_z_n, alpha, Ny, local_alpha_A_z_n);
-    //     subtract_vectors(local_r_current, local_alpha_A_z_n, Ny, local_r_next);
-
-
-
-
-
-
-    //     denominator = numerator;
-
-    //     local_numerator = ddot(local_r_next, local_r_next, Ny);
-
-    //     MPI_Allreduce(&local_numerator,
-    //                   &numerator,
-    //                   1,
-    //                   MPI_DOUBLE,
-    //                   MPI_SUM,
-    //                   MPI_COMM_WORLD);
-
-    //     double beta = numerator / denominator;
-
-
-
-
-    //     multyply_vector_by_scalar(local_z_current, beta, Ny, local_beta_z_n);
-    //     add_vectors(local_r_next, local_beta_z_n, Ny, local_z_next);
-    
-    //     MPI_Gatherv(local_z_next, 
-    //                 Ny,
-    //                 MPI_DOUBLE,
-    //                 z_next,
-    //                 vector_sends_count,
-    //                 vector_displs,
-    //                 MPI_DOUBLE,
-    //                 ROOT_RANK,
-    //                 MPI_COMM_WORLD);
-
-    //     copy_vector(local_x_current, local_x_next, Ny);
-    //     copy_vector(local_r_current, local_r_next, Ny);
-    
-    //     if (root == ROOT_RANK) {
-    //         copy_vector(z_current, z_next, Nx);
-    //     }
-    // }
-
-
-
-    
-
-
-
-
-
-
-    
-
+    free(A);
+    free(b);
+    free(x0);
     free(vector_sends_count);
     free(matrix_sends_count);
     free(vector_displs);
     free(matrix_displs);
-    free(A);
-    free(b);
-    // free(x_current);
-    // free(x_next);
-    // free(r_current);
-    // free(r_next);
-    // free(z_current);
-    // free(z_next);
-    // // free(local_A);
-    // free(local_x0);
-    // free(local_x_current);
-    // free(local_x_next);
-    // free(local_r_current);
-    // free(local_r_next);
-    // free(local_z_current);
-    // free(local_z_next);
-    // free(local_A_x0);
-    // free(local_A_z_n);
-    // free(local_alpha_z_n);
-    // free(local_alpha_A_z_n);
-    // free(local_beta_z_n);
+    free(local_A);
+    free(local_b);
+    free(local_result);
+    free(result);
 
     MPI_Finalize();
 
