@@ -100,7 +100,7 @@ void inverse_subtract_vectors(double* result, const double* minuend, unsigned in
     }
 }
 
-void multyply_vector_by_scalar(double* vector, double scalar, unsigned int size) {
+void multiply_vector_by_scalar(double* vector, double scalar, unsigned int size) {
     const __m128d* x = (void*) vector;
     const __m128d y = _mm_load_pd1(&scalar);
 
@@ -116,7 +116,7 @@ void multyply_vector_by_scalar(double* vector, double scalar, unsigned int size)
         vector[size - 1] *= scalar;
     }
 }
-void multyply_vector_by_scalar2(const double* vector, double scalar, unsigned int size, double* result) {
+void multiply_vector_by_scalar2(const double* vector, double scalar, unsigned int size, double* result) {
     const __m128d* x = (void*) vector;
     const __m128d y = _mm_load_pd1(&scalar);
 
@@ -167,7 +167,7 @@ void print_delta(const double* A, const double* b, const double* result) {
     free(tmp);
     
     if (isnan(delta) || isinf(delta)) {
-        printf("The proccess diverged\n");
+        printf("The process diverged\n");
     } 
     else {
         printf("|Ax - b| = %lf\n", delta);

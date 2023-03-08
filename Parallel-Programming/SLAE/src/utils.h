@@ -18,8 +18,8 @@ void multiply_vector_by_matrix(const double* matrix, const double* vector, unsig
 void add_vectors(double* result, const double* delta, unsigned int size);
 void subtract_vectors(double* result, const double* subtrahend, unsigned int size);
 void inverse_subtract_vectors(double* result, const double* minuend, unsigned int size);
-void multyply_vector_by_scalar(double* vector, double scalar, unsigned int size);
-void multyply_vector_by_scalar2(const double* vector, double scalar, unsigned int size, double* result);
+void multiply_vector_by_scalar(double* vector, double scalar, unsigned int size);
+void multiply_vector_by_scalar2(const double* vector, double scalar, unsigned int size, double* result);
 
 struct InputData create_input_data();
 

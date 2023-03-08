@@ -37,18 +37,18 @@ unsigned int iterate(const struct InputData* input_data, double* result) {
         const double alpha = r_nrm_squared / ddot(A_z, z, N);
 
         // Calculating x_{n+1}
-        multyply_vector_by_scalar2(z, alpha, N, buffer);
+        multiply_vector_by_scalar2(z, alpha, N, buffer);
         add_vectors(result, buffer, N);
 
         // Calculating r_{n+1}
-        multyply_vector_by_scalar2(A_z, alpha, N, buffer);
+        multiply_vector_by_scalar2(A_z, alpha, N, buffer);
         subtract_vectors(r, buffer, N);
 
         // Calculating beta
         const double beta = ddot(r, r, N) / r_nrm_squared;
 
         // Calculating z_{n+1}
-        multyply_vector_by_scalar(z, beta, N);
+        multiply_vector_by_scalar(z, beta, N);
         add_vectors(z, r, N);
 
         iterations_count++;

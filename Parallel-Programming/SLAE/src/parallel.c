@@ -94,11 +94,11 @@ unsigned int iterate(const struct IterationsData* iterations_data, double* local
         const double alpha = alpha_numerator / alpha_denominator;
 
         // Calculating x_{n+1}
-        multyply_vector_by_scalar2(local_z, alpha, Ny, buffer);
+        multiply_vector_by_scalar2(local_z, alpha, Ny, buffer);
         add_vectors(local_result, buffer, Ny);
 
         // Calculating r_{n+1}
-        multyply_vector_by_scalar2(local_A_z, alpha, Ny, buffer);
+        multiply_vector_by_scalar2(local_A_z, alpha, Ny, buffer);
         subtract_vectors(local_r, buffer, Ny);
 
         // Calculating beta
@@ -114,7 +114,7 @@ unsigned int iterate(const struct IterationsData* iterations_data, double* local
         const double beta = beta_numerator / beta_denominator;
 
         // Calculating z_{n+1}
-        multyply_vector_by_scalar(local_z, beta, Ny);
+        multiply_vector_by_scalar(local_z, beta, Ny);
         add_vectors(local_z, local_r, Ny);
     
         iterations_count++;
