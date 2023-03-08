@@ -1,6 +1,6 @@
 #pragma once
 
-#define N 500
+#define N 1500
 
 #define EPSILON 0.000000001 // 10^(-9)
 
