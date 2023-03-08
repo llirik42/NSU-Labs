@@ -8,7 +8,7 @@
 #define DOUBLE_VALUES_IN_MM_128 2
 
 double* create_vector(unsigned int size) {
-	return malloc(sizeof(double) * size);
+    return malloc(sizeof(double) * size);
 }
 
 int* create_int_vector(unsigned int size) {
@@ -16,11 +16,11 @@ int* create_int_vector(unsigned int size) {
 }
 
 double* create_matrix(unsigned int x_size, unsigned int y_size) {
-	return malloc(sizeof(double) * x_size * y_size);
+    return malloc(sizeof(double) * x_size * y_size);
 }
 
 void copy_vector(const double* from, double* to, unsigned int size) {
-	memcpy(to, from, sizeof(double) * size);
+    memcpy(to, from, sizeof(double) * size);
 }
 
 double ddot(const double* vector1, const double* vector2, unsigned int size) {
@@ -45,9 +45,9 @@ double ddot(const double* vector1, const double* vector2, unsigned int size) {
 }
 
 void multiply_vector_by_matrix(const double* matrix, const double* vector, unsigned int x_size, unsigned int y_size, double* result) {
-	for (unsigned int i = 0; i < y_size; i++) {
-		result[i] = ddot(vector, matrix + i * x_size, x_size);
-	}
+    for (unsigned int i = 0; i < y_size; i++) {
+	   result[i] = ddot(vector, matrix + i * x_size, x_size);
+    }
 }
 
 void add_vectors(double* result, const double* delta, unsigned int size) {
@@ -57,7 +57,7 @@ void add_vectors(double* result, const double* delta, unsigned int size) {
     const unsigned int part1 = size / DOUBLE_VALUES_IN_MM_128;
     const unsigned int part2 = size % DOUBLE_VALUES_IN_MM_128;
 
-    for (size_t i = 0; i < part1; i++) {
+    for (unsigned int i = 0; i < part1; i++) {
         const __m128d tmp = _mm_add_pd(*(x + i), *(y + i));
         _mm_storeu_pd(result + i * DOUBLE_VALUES_IN_MM_128, tmp);
     }
@@ -68,13 +68,13 @@ void add_vectors(double* result, const double* delta, unsigned int size) {
 }
 
 void subtract_vectors(double* result, const double* subtrahend, unsigned int size) {
-	const __m128d* x = (void*) result;
+    const __m128d* x = (void*) result;
     const __m128d* y = (void*) subtrahend;
 
     const unsigned int part1 = size / DOUBLE_VALUES_IN_MM_128;
     const unsigned int part2 = size % DOUBLE_VALUES_IN_MM_128;
 
-    for (size_t i = 0; i < part1; i++) {
+    for (unsigned int i = 0; i < part1; i++) {
         const __m128d tmp = _mm_sub_pd(*(x + i), *(y + i));
         _mm_storeu_pd(result + i * DOUBLE_VALUES_IN_MM_128, tmp);
     }
@@ -90,7 +90,7 @@ void inverse_subtract_vectors(double* result, const double* minuend, unsigned in
     const unsigned int part1 = size / DOUBLE_VALUES_IN_MM_128;
     const unsigned int part2 = size % DOUBLE_VALUES_IN_MM_128;
 
-    for (size_t i = 0; i < part1; i++) {
+    for (unsigned int i = 0; i < part1; i++) {
         const __m128d tmp = _mm_sub_pd(*(x + i), *(y + i));
         _mm_storeu_pd(result + i * DOUBLE_VALUES_IN_MM_128, tmp);
     }
@@ -155,6 +155,7 @@ struct InputData create_input_data() {
         .n = N, 
         .max_iterations_count = MAX_ITERATIONS_COUNT
     };
+
     return ret;
 }
 
@@ -168,7 +169,7 @@ void print_delta(const double* A, const double* b, const double* result) {
     if (isnan(delta) || isinf(delta)) {
         printf("The proccess diverged\n");
     } 
-    else{
+    else {
         printf("|Ax - b| = %lf\n", delta);
     }
 }

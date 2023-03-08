@@ -63,7 +63,7 @@ unsigned int iterate(const struct InputData* input_data, double* result) {
 }
 
 int main() {
-	const time_t start_time = clock();
+    const time_t start_time = clock();
 
     const struct InputData input_data = create_input_data();
     double* result = create_vector(input_data.n);
