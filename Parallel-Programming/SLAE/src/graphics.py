@@ -10,7 +10,7 @@ TIME_MEASUREMENTS_MS = {
     6: 49745,
     8: 37535,
     12: 22327,
-    14: 12567,
+    14: 26891,
     16: 16933,
     20: 11782,
     22: 9308,
@@ -23,7 +23,7 @@ ITERATIONS_MEASUREMENTS = {
     6: 21646,
     8: 21368,
     12: 18579,
-    14: 13221,
+    14: 22476,
     16: 18665,
     20: 16074,
     22: 13662,
@@ -46,9 +46,9 @@ font = {'size': 30}
 matplotlib.rc('font', **font)
 
 fig1, ax1 = matplotlib.pyplot.subplots()
-ax1.plot(str_time_s.keys(), str_time_s.values(), label='Время работы', linewidth=2, color='g')
+ax1.plot(str_time_s.keys(), str_time_s.values(), label='Время работы, с', linewidth=2, color='g')
 ax1.set_xlabel('Количество процессов')
-ax1.set_ylabel('Время работы, ')
+ax1.set_ylabel('Время работы, с')
 ax1.legend()
 
 fig2, ax2 = matplotlib.pyplot.subplots()
@@ -64,16 +64,15 @@ ax3.set_ylabel('Эффективность')
 ax3.legend()
 
 fig4, ax4 = matplotlib.pyplot.subplots()
-ax4.plot(str_ms_on_one_iteration.keys(), str_ms_on_one_iteration.values(), label='Время на одну итерацию', linewidth=2, color='g')
+ax4.plot(str_ms_on_one_iteration.keys(), str_ms_on_one_iteration.values(), label='Время на одну итерацию, мс', linewidth=2, color='g')
 ax4.set_xlabel('Количество процессов')
 ax4.set_ylabel('Время на одну итерацию, мс')
 ax4.legend()
 
 fig5, ax5 = matplotlib.pyplot.subplots()
-ax5.plot(str_iterations_count_thousands.keys(), str_iterations_count_thousands.values(), label='Количество итераций', linewidth=2, color='g')
+ax5.plot(str_iterations_count_thousands.keys(), str_iterations_count_thousands.values(), label='Количество итераций, тыс.', linewidth=2, color='g')
 ax5.set_xlabel('Количество процессов')
 ax5.set_ylabel('Количество итераций, тыс.')
 ax5.legend()
 
 matplotlib.pyplot.show()
-

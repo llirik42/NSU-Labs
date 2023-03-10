@@ -51,18 +51,18 @@ unsigned int iterate(const struct IterationsData* iterations_data, double* local
     inverse_subtract_vectors(local_r, local_b, Ny);
     copy_vector(local_r, local_z, Ny);
 
+    // Calculating (r_0, r_0)
+    double local_r_nrm_squared = ddot(local_r, local_r, Ny);
+    double r_nrm_squared;
+    MPI_Allreduce(&local_r_nrm_squared,
+                  &r_nrm_squared,
+                  1,
+                  MPI_DOUBLE,
+                  MPI_SUM,
+                  MPI_COMM_WORLD); 
+
     // Iterative cycle 
     while(1) {
-        // Calculating (r_n, r_n)
-        const double local_r_nrm_squared = ddot(local_r, local_r, Ny);
-        double r_nrm_squared;
-        MPI_Allreduce(&local_r_nrm_squared,
-                      &r_nrm_squared,
-                      1,
-                      MPI_DOUBLE,
-                      MPI_SUM,
-                      MPI_COMM_WORLD);
-
         // Checking condition of exit 
         if (r_nrm_squared < b_nrm_epsilon_squared || iterations_count > max_iterations_count) {
             break;
@@ -94,29 +94,28 @@ unsigned int iterate(const struct IterationsData* iterations_data, double* local
         const double alpha = alpha_numerator / alpha_denominator;
 
         // Calculating x_{n+1}
-        multiply_vector_by_scalar2(local_z, alpha, Ny, buffer);
+        multiply_vector_by_scalar(local_z, alpha, Ny, buffer);
         add_vectors(local_result, buffer, Ny);
 
         // Calculating r_{n+1}
-        multiply_vector_by_scalar2(local_A_z, alpha, Ny, buffer);
+        multiply_vector_by_scalar(local_A_z, alpha, Ny, buffer);
         subtract_vectors(local_r, buffer, Ny);
 
         // Calculating beta
         const double beta_denominator = r_nrm_squared;
-        const double local_beta_numerator = ddot(local_r, local_r, Ny);
-        double beta_numerator;
-        MPI_Allreduce(&local_beta_numerator,
-                      &beta_numerator,
+        const double local_r_next_nrm_squared = ddot(local_r, local_r, Ny);
+        MPI_Allreduce(&local_r_next_nrm_squared,
+                      &r_nrm_squared,
                       1,
                       MPI_DOUBLE,
                       MPI_SUM,
                       MPI_COMM_WORLD);
-        const double beta = beta_numerator / beta_denominator;
+        const double beta = r_nrm_squared / beta_denominator;
 
         // Calculating z_{n+1}
-        multiply_vector_by_scalar(local_z, beta, Ny);
+        multiply_vector_by_scalar(local_z, beta, Ny, local_z);
         add_vectors(local_z, local_r, Ny);
-    
+
         iterations_count++;
     }
 
@@ -178,21 +177,6 @@ int main(int argc, char** argv) {
             matrix_displs[i] = vector_displs[i] * Nx;        
         }
     }
-    
-    MPI_Bcast(&Nx, 
-              1, 
-              MPI_UNSIGNED, 
-              ROOT_RANK, 
-              MPI_COMM_WORLD);
-
-    MPI_Scatter(vector_sends_count,
-                1,
-                MPI_INT,
-                &Ny,
-                1,
-                MPI_UNSIGNED,
-                ROOT_RANK,
-                MPI_COMM_WORLD);
 
     MPI_Bcast(&max_iterations_count, 
               1, 
@@ -206,13 +190,6 @@ int main(int argc, char** argv) {
               ROOT_RANK, 
               MPI_COMM_WORLD);
 
-    double* local_A = create_matrix(Nx, Ny);
-    double* local_b = create_vector(Ny);
-    double* local_result = create_vector(Ny);
-    if (rank != ROOT_RANK) {
-        x0 = create_vector(Nx);
-    }
-
     MPI_Bcast(vector_sends_count, 
               size, 
               MPI_INT, 
@@ -224,6 +201,20 @@ int main(int argc, char** argv) {
               MPI_INT, 
               ROOT_RANK, 
               MPI_COMM_WORLD);
+
+    // Calculating Nx, Ny
+    Ny = vector_sends_count[rank];
+    Nx = 0;
+    for (unsigned int i = 0; i < size; i++) {
+        Nx += vector_sends_count[i];
+    }
+
+    double* local_A = create_matrix(Nx, Ny);
+    double* local_b = create_vector(Ny);
+    double* local_result = create_vector(Ny);
+    if (rank != ROOT_RANK) {
+        x0 = create_vector(Nx);
+    }
 
     MPI_Bcast(x0, 
               Nx, 
@@ -251,16 +242,12 @@ int main(int argc, char** argv) {
                  ROOT_RANK,
                  MPI_COMM_WORLD);
 
-    MPI_Scatterv(x0, 
-                 vector_sends_count,
-                 vector_displs,
-                 MPI_DOUBLE,
-                 local_result,
-                 Ny,
-                 MPI_DOUBLE,
-                 ROOT_RANK,
-                 MPI_COMM_WORLD);
-
+    // Setting local_x0
+    const unsigned int offset = vector_displs[rank];
+    for (unsigned int i = 0; i < Ny; i++) {
+        local_result[i] = x0[i + offset];
+    }
+    
     const struct IterationsData iterarations_data = {
         .local_A = local_A,
         .local_b = local_b,

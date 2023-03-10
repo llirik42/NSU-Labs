@@ -100,23 +100,7 @@ void inverse_subtract_vectors(double* result, const double* minuend, unsigned in
     }
 }
 
-void multiply_vector_by_scalar(double* vector, double scalar, unsigned int size) {
-    const __m128d* x = (void*) vector;
-    const __m128d y = _mm_load_pd1(&scalar);
-
-    const unsigned int part1 = size / DOUBLE_VALUES_IN_MM_128;
-    const unsigned int part2 = size % DOUBLE_VALUES_IN_MM_128;
-
-    for (unsigned int i = 0; i < part1; i++) {
-        const __m128d tmp = _mm_mul_pd(*(x + i), y);
-        _mm_storeu_pd(vector + i * DOUBLE_VALUES_IN_MM_128, tmp);
-    }
-
-    for (unsigned int i = 0; i < part2; i++) {
-        vector[size - 1] *= scalar;
-    }
-}
-void multiply_vector_by_scalar2(const double* vector, double scalar, unsigned int size, double* result) {
+void multiply_vector_by_scalar(const double* vector, double scalar, unsigned int size, double* result) {
     const __m128d* x = (void*) vector;
     const __m128d y = _mm_load_pd1(&scalar);
 
