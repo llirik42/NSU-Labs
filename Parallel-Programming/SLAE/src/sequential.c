@@ -23,9 +23,9 @@ unsigned int iterate(const struct InputData* input_data, double* result) {
     inverse_subtract_vectors(r, b, N);
     copy_vector(r, z, N);
 
-    while (1) {
-        const double r_nrm_squared = ddot(r, r, N); // (r_n, r_n)
-    
+    double r_nrm_squared = ddot(r, r, N); // (r_n, r_n)
+
+    while (1) {    
         if (r_nrm_squared < b_nrm_epsilon_squared || iterations_count > max_iterations_count) {
             break;
         }
@@ -34,7 +34,8 @@ unsigned int iterate(const struct InputData* input_data, double* result) {
         multiply_vector_by_matrix(A, z, N, N, A_z);
 
         // Calculating alpha
-        const double alpha = r_nrm_squared / ddot(A_z, z, N);
+        const double alpha_numerator = r_nrm_squared;
+        const double alpha = alpha_numerator / ddot(A_z, z, N);
 
         // Calculating x_{n+1}
         multiply_vector_by_scalar(z, alpha, N, buffer);
@@ -45,7 +46,8 @@ unsigned int iterate(const struct InputData* input_data, double* result) {
         subtract_vectors(r, buffer, N);
 
         // Calculating beta
-        const double beta = ddot(r, r, N) / r_nrm_squared;
+        r_nrm_squared = ddot(r, r, N);
+        const double beta = r_nrm_squared / alpha_numerator;
 
         // Calculating z_{n+1}
         multiply_vector_by_scalar(z, beta, N, z);
