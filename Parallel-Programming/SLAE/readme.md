@@ -7,9 +7,9 @@ $$r_0 = b - Ax_0$$
 $$z_0=r_0$$
 $$\alpha_{n+1}=\frac{(r_n, r_n)}{(Az_n, z_n)}$$
 $$x_{n+1}=x_n + \alpha_{n+1}z_n$$
-$$r_{n+1}=r_n-\alpha A z_n$$
+$$r_{n+1}=r_n-\alpha_{n+1} A z_n$$
 $$\beta_{n+1}=\frac{(r_{n+1}, r_{n+1})}{(r_n, r_n)}$$
-$$z_{n+1}=r_{n+1} + \beta z_n$$
+$$z_{n+1}=r_{n+1} + \beta_{n+1} z_n$$
 Критерий завершения отсчёта можно взять следующий
 $$\frac{||r_n||_2}{||b||_2} < \varepsilon$$
 где
