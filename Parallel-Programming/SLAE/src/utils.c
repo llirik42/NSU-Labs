@@ -6,6 +6,41 @@
 #include "config.h"
 
 #define DOUBLE_VALUES_IN_MM_128 2
+#define BYTES_IN_DOUBLE 8
+
+double default_ddot(const double* vector1, const double* vector2, unsigned int size, unsigned int offset) {
+    double result = 0;
+
+    for (unsigned int i = 0; i < size; i++) {
+        result += vector1[i + offset] * vector2[i + offset];
+    }
+
+    return result;
+}
+
+void default_add_vectors(double* result, const double* delta, unsigned int size, unsigned int offset) {
+    for (unsigned int i = 0; i < size; i++) {
+        result[i + offset] += delta[i + offset];
+    }
+}
+
+void default_subtract_vectors(double* result, const double* subtrahend, unsigned int size, unsigned int offset) {
+    for (unsigned int i = 0; i < size; i++) {
+        result[i + offset] -= subtrahend[i + offset];
+    }
+}
+
+void default_inverse_subtract_vectors(double* result, const double* minuend, unsigned int size, unsigned int offset) {
+    for (unsigned int i = 0; i < size; i++) {
+        result[i + offset] = minuend[i + offset] - result[i + offset];
+    }
+}
+
+void default_multiply_vector_by_scalar(const double* vector, double scalar, unsigned int size, unsigned int offset, double* result) {
+    for (unsigned int i = 0; i < size; i++) {
+        result[i + offset] = vector[i + offset] * scalar;
+    }
+}
 
 double* create_vector(unsigned int size) {
     return malloc(sizeof(double) * size);
@@ -24,21 +59,26 @@ void copy_vector(const double* from, double* to, unsigned int size) {
 }
 
 double ddot(const double* vector1, const double* vector2, unsigned int size) {
-    const __m128d* x = (void*) vector1;
-    const __m128d* y = (void*) vector2;
-    __m128d result_vector = _mm_setzero_pd();
+    double result;    
 
-    const unsigned int part1 = size / DOUBLE_VALUES_IN_MM_128;
-    const unsigned int part2 = size % DOUBLE_VALUES_IN_MM_128;
-
-    for (unsigned int i = 0; i < part1; i++) {
-        result_vector = _mm_add_pd(result_vector, _mm_mul_pd(*(x + i), *(y + i)));
+    if (size < BYTES_IN_DOUBLE) {
+        result = default_ddot(vector1, vector2, size, 0);
     }
+    else {
+        const __m128d* x = (void*) vector1;
+        const __m128d* y = (void*) vector2;
+        __m128d result_vector = _mm_setzero_pd();
 
-    double result = ((double*) &result_vector)[0] + ((double*) &result_vector)[1];
+        const unsigned int part1 = size / DOUBLE_VALUES_IN_MM_128;
+        const unsigned int part2 = size % DOUBLE_VALUES_IN_MM_128;
 
-    for (unsigned int i = 0; i < part2; i++) {
-        result += vector1[size - 1] * vector2[size - 1];
+        for (unsigned int i = 0; i < part1; i++) {
+            result_vector = _mm_add_pd(result_vector, _mm_mul_pd(*(x + i), *(y + i)));
+        }
+
+        result = ((double*) &result_vector)[0] + ((double*) &result_vector)[1];
+
+        result += default_ddot(vector1, vector2, part2, size - 1);
     }
 
     return result;
@@ -51,69 +91,81 @@ void multiply_vector_by_matrix(const double* matrix, const double* vector, unsig
 }
 
 void add_vectors(double* result, const double* delta, unsigned int size) {
-    const __m128d* x = (void*) result;
-    const __m128d* y = (void*) delta;
-
-    const unsigned int part1 = size / DOUBLE_VALUES_IN_MM_128;
-    const unsigned int part2 = size % DOUBLE_VALUES_IN_MM_128;
-
-    for (unsigned int i = 0; i < part1; i++) {
-        const __m128d tmp = _mm_add_pd(*(x + i), *(y + i));
-        _mm_storeu_pd(result + i * DOUBLE_VALUES_IN_MM_128, tmp);
+    if (size < BYTES_IN_DOUBLE) {
+        default_add_vectors(result, delta, size, 0);
     }
+    else {
+        const __m128d* x = (void*) result;
+        const __m128d* y = (void*) delta;
 
-    for (unsigned int i = 0; i < part2; i++) {
-        result[size - 1] += delta[size - 1];
+        const unsigned int part1 = size / DOUBLE_VALUES_IN_MM_128;
+        const unsigned int part2 = size % DOUBLE_VALUES_IN_MM_128;
+
+        for (unsigned int i = 0; i < part1; i++) {
+            const __m128d tmp = _mm_add_pd(*(x + i), *(y + i));
+            _mm_storeu_pd(result + i * DOUBLE_VALUES_IN_MM_128, tmp);
+        }
+
+        default_add_vectors(result, delta, part2, size - 1);
     }
 }
 
 void subtract_vectors(double* result, const double* subtrahend, unsigned int size) {
-    const __m128d* x = (void*) result;
-    const __m128d* y = (void*) subtrahend;
-
-    const unsigned int part1 = size / DOUBLE_VALUES_IN_MM_128;
-    const unsigned int part2 = size % DOUBLE_VALUES_IN_MM_128;
-
-    for (unsigned int i = 0; i < part1; i++) {
-        const __m128d tmp = _mm_sub_pd(*(x + i), *(y + i));
-        _mm_storeu_pd(result + i * DOUBLE_VALUES_IN_MM_128, tmp);
+    if (size < BYTES_IN_DOUBLE) {
+        default_subtract_vectors(result, subtrahend, size, 0);
     }
+    else {
+        const __m128d* x = (void*) result;
+        const __m128d* y = (void*) subtrahend;
 
-    for (unsigned int i = 0; i < part2; i++) {
-        result[size - 1] -= subtrahend[size - 1];
+        const unsigned int part1 = size / DOUBLE_VALUES_IN_MM_128;
+        const unsigned int part2 = size % DOUBLE_VALUES_IN_MM_128;
+
+        for (unsigned int i = 0; i < part1; i++) {
+            const __m128d tmp = _mm_sub_pd(*(x + i), *(y + i));
+            _mm_storeu_pd(result + i * DOUBLE_VALUES_IN_MM_128, tmp);
+        }
+
+        default_subtract_vectors(result, subtrahend, part2, size - 1);
     }
 }
 void inverse_subtract_vectors(double* result, const double* minuend, unsigned int size) {
-    const __m128d* x = (void*) minuend;
-    const __m128d* y = (void*) result;
-
-    const unsigned int part1 = size / DOUBLE_VALUES_IN_MM_128;
-    const unsigned int part2 = size % DOUBLE_VALUES_IN_MM_128;
-
-    for (unsigned int i = 0; i < part1; i++) {
-        const __m128d tmp = _mm_sub_pd(*(x + i), *(y + i));
-        _mm_storeu_pd(result + i * DOUBLE_VALUES_IN_MM_128, tmp);
+    if (size < BYTES_IN_DOUBLE) {
+        default_inverse_subtract_vectors(result, minuend, size, 0);
     }
+    else {
+        const __m128d* x = (void*) minuend;
+        const __m128d* y = (void*) result;
 
-    for (unsigned int i = 0; i < part2; i++) {
-        result[size - 1] = minuend[size - 1] - result[size - 1];
+        const unsigned int part1 = size / DOUBLE_VALUES_IN_MM_128;
+        const unsigned int part2 = size % DOUBLE_VALUES_IN_MM_128;
+
+        for (unsigned int i = 0; i < part1; i++) {
+            const __m128d tmp = _mm_sub_pd(*(x + i), *(y + i));
+            _mm_storeu_pd(result + i * DOUBLE_VALUES_IN_MM_128, tmp);
+        }
+
+        default_inverse_subtract_vectors(result, minuend, part2, size - 1);
     }
 }
 
 void multiply_vector_by_scalar(const double* vector, double scalar, unsigned int size, double* result) {
-    const __m128d* x = (void*) vector;
-    const __m128d y = _mm_load_pd1(&scalar);
-
-    const unsigned int part1 = size / DOUBLE_VALUES_IN_MM_128;
-    const unsigned int part2 = size % DOUBLE_VALUES_IN_MM_128;
-
-    for (unsigned int i = 0; i < part1; i++) {
-        const __m128d tmp = _mm_mul_pd(*(x + i), y);
-        _mm_storeu_pd(result + i * DOUBLE_VALUES_IN_MM_128, tmp);
+    if (size < BYTES_IN_DOUBLE) {
+        default_multiply_vector_by_scalar(vector, scalar, size, 0, result);
     }
+    else {
+        const __m128d* x = (void*) vector;
+        const __m128d y = _mm_load_pd1(&scalar);
 
-    for (unsigned int i = 0; i < part2; i++) {
-        result[size - 1] = vector[size - 1] * scalar;
+        const unsigned int part1 = size / DOUBLE_VALUES_IN_MM_128;
+        const unsigned int part2 = size % DOUBLE_VALUES_IN_MM_128;
+
+        for (unsigned int i = 0; i < part1; i++) {
+            const __m128d tmp = _mm_mul_pd(*(x + i), y);
+            _mm_storeu_pd(result + i * DOUBLE_VALUES_IN_MM_128, tmp);
+        }
+
+        default_multiply_vector_by_scalar(vector, scalar, part2, size - 1, result);
     }
 }
 

@@ -23,7 +23,8 @@ unsigned int iterate(const struct InputData* input_data, double* result) {
     inverse_subtract_vectors(r, b, N);
     copy_vector(r, z, N);
 
-    double r_nrm_squared = ddot(r, r, N); // (r_n, r_n)
+    // Calculating (r_0, r_0)
+    double r_nrm_squared = ddot(r, r, N);
 
     while (1) {    
         if (r_nrm_squared < b_nrm_epsilon_squared || iterations_count > max_iterations_count) {
@@ -83,6 +84,7 @@ int main() {
     free(input_data.A);
     free(input_data.b);
     free(input_data.x0);
+    free(result);
 
     return 0;
 }
