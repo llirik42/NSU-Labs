@@ -395,14 +395,13 @@ int execute_parent(pid_t process_id) {
   int status;  
   wait(&status);
 
-  //waitpid(process_id, &status, 0);
   HANDLE_PTRACE(ptrace(PTRACE_SETOPTIONS, process_id, NULL, PTRACE_O_TRACESYSGOOD))
     
   // While tracee hasn't completed
   while (!WIFEXITED(status)) {
     struct user_regs_struct state;
     
-    HANDLE_PTRACE(ptrace(PTRACE_SYSCALL, process_id, NULL, NULL)) // Set some magic options
+    HANDLE_PTRACE(ptrace(PTRACE_SYSCALL, process_id, NULL, NULL))
     wait(&status);
         
     // If the child process is stopped and syscall occurred (int 80)
