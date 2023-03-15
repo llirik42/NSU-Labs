@@ -4,12 +4,14 @@
 #include <sys/wait.h>
 #include <sys/user.h>
 #include <unistd.h>
+#include <errno.h>
 
 #define CHILD_PROCESS_ID 0
 
 #define ERROR (-1)
 
-#define HANDLE_PTRACE(CALL) if (CALL == ERROR) {printf("Error occured\n"); return ERROR;}
+#define EXECUTE(CALL) if (CALL == ERROR) {perror(NULL); return ERROR;}
+#define EXECUTE_AND_RETURN(DEST, CALL) {int tmp = CALL; if (tmp == ERROR) {perror(NULL); return ERROR;} DEST = tmp;}
 
 char* get_syscall_name(unsigned long long code) {
   switch (code) {
@@ -316,8 +318,8 @@ char* get_syscall_name(unsigned long long code) {
     case 300: return "fanotify_init";
     case 301: return "fanotify_mark";
     case 302: return "prlimit64";
-    case 303: return "name_to_handle_at";
-    case 304: return "open_by_handle_at";
+    case 303: return "name_to_EXECUTE_at";
+    case 304: return "open_by_EXECUTE_at";
     case 305: return "clock_adjtime";
     case 306: return "syncfs";
     case 307: return "sendmmsg";
@@ -378,6 +380,8 @@ char* get_syscall_name(unsigned long long code) {
 }
 
 void prepare_args(int argc, char** argv) {
+  // argv for the execve must end with NULL (and we here we don't need argv[0])
+  // So we shift argv and put NULL at the end
   for (int i = 0; i < argc - 1; i++) {
     argv[i] = argv[i + 1];
   }
@@ -386,42 +390,44 @@ void prepare_args(int argc, char** argv) {
 
 int execute_child(int argc, char** argv) {
   prepare_args(argc, argv);
-  HANDLE_PTRACE(ptrace(PTRACE_TRACEME))
-  kill(getpid(), SIGSTOP);
-  return execv(argv[0], argv);
+  EXECUTE(ptrace(PTRACE_TRACEME))
+  EXECUTE(kill(getpid(), SIGCHLD)) // We have to send any sygnal for the ptracer to start trace
+  int execve_code;
+  EXECUTE_AND_RETURN(execve_code, execve(argv[0], argv, NULL))
+  return execve_code;
 }
 
 int execute_parent(pid_t process_id) {
-  int status;  
-  wait(&status);
+  int status; 
+  EXECUTE(wait(&status)) 
 
-  HANDLE_PTRACE(ptrace(PTRACE_SETOPTIONS, process_id, NULL, PTRACE_O_TRACESYSGOOD))
+  EXECUTE(ptrace(PTRACE_SETOPTIONS, process_id, NULL, PTRACE_O_TRACESYSGOOD))
     
-  // While tracee hasn't completed
+  // While child process hasn't completed
   while (!WIFEXITED(status)) {
     struct user_regs_struct state;
     
-    HANDLE_PTRACE(ptrace(PTRACE_SYSCALL, process_id, NULL, NULL))
-    wait(&status);
+    EXECUTE(ptrace(PTRACE_SYSCALL, process_id, NULL, NULL))
+    EXECUTE(wait(&status)) 
         
     // If the child process is stopped and syscall occurred (int 80)
     if (WIFSTOPPED(status) && WSTOPSIG(status) & 0x80) {
-      ptrace(PTRACE_GETREGS, process_id, 0, &state);
+      EXECUTE(ptrace(PTRACE_GETREGS, process_id, 0, &state))
       printf("%s\n", get_syscall_name(state.orig_rax));
         
-      // Restart tracee
-      HANDLE_PTRACE(ptrace(PTRACE_SYSCALL, process_id, NULL, NULL))
-      wait(&status);
+      // Continue the child process
+      EXECUTE(ptrace(PTRACE_SYSCALL, process_id, NULL, NULL))
+      EXECUTE(wait(&status)) 
     }
   }
-
-  wait(&status);
 
   return 0;
 }
 
 int main(int argc, char** argv) {
-  pid_t process_id = fork();
+  pid_t process_id;
+
+  EXECUTE_AND_RETURN(process_id, fork());
 
   if (process_id == CHILD_PROCESS_ID) {
     return execute_child(argc, argv);
