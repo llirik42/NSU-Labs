@@ -19,6 +19,32 @@
     DEST = tmp;                                       \
 }
 
+/*
+ * Returns index of last '/' or -1 if there is no '/' in the "string"
+ */
+int get_index_of_last_slash(const char* string, unsigned int length) {
+    int result = (int) length - 1;
+    while (result > -1 && string[result] != SLASH) {
+        result--;
+    }
+    return result;
+}
+
+/*
+ * If the "string" doesn't end with '/' returns strlen(string), else — strlen(string) - 1
+ */
+unsigned int get_effective_length(const char* string) {
+    unsigned int length = strlen(string);
+    if (string[length - 1] == SLASH) {
+        length--;
+    }
+    return length;
+}
+
+/*
+ * Copies "count" bytes from one buffer to another and
+ * to[to_start_index + i] = from[from_start_index + i];
+ */
 void copy(const char* from, char* to, unsigned int from_start_index, unsigned int to_start_index,
           unsigned int count) {
     for (unsigned int i = 0; i < count; i++) {
@@ -26,6 +52,10 @@ void copy(const char* from, char* to, unsigned int from_start_index, unsigned in
     }
 }
 
+/*
+ * Copies and inverts "count" bytes from one buffer to another and
+ * to[to_start_index + i] = from[from_end_index - i - 1];
+ */
 void copy_inverted(const char* from, char* to, unsigned int from_end_index, unsigned int to_start_index,
                    unsigned int count) {
     for (unsigned int i = 0; i < count; i++) {
@@ -33,6 +63,9 @@ void copy_inverted(const char* from, char* to, unsigned int from_end_index, unsi
     }
 }
 
+/*
+ * Writes {original_path}/{name} to the "full_original_path" and sets the last char to '\0'
+ */
 void write_full_original_path(const char* original_path, const char* name, char* full_original_path) {
     const unsigned int path_length = strlen(original_path);
     const unsigned int name_length = strlen(name);
@@ -42,6 +75,11 @@ void write_full_original_path(const char* original_path, const char* name, char*
     copy(name, full_original_path, 0, path_length + 1, name_length);
     full_original_path[path_length + name_length + 1] = NULL_TERMINATOR;
 }
+
+/*
+ * Writes {original_path}/{<inverted name>} to the "full_inverted_path" and sets the last char to '\0'
+ * where <inverted name> — is an inverted "name"
+ */
 void write_full_inverted_path(const char* inverted_path, const char* name, char* full_inverted_path) {
     const unsigned int path_length = strlen(inverted_path);
     const unsigned int name_length = strlen(name);
@@ -55,6 +93,37 @@ void write_full_inverted_path(const char* inverted_path, const char* name, char*
                   name_length);
     full_inverted_path[path_length + name_length + 1] = NULL_TERMINATOR;
 }
+
+/*
+ * Inverts name of the starting directory and removes '/' at the end
+ * Examples:
+ * dir -> rid
+ * a/b/c/d/dir -> a/b/c/d/rid
+ * ../dir -> ../rid
+ * dir/ -> rid
+ * a/b/c/d/dir/ -> a/b/c/d/dir
+ */
+void write_start_inverted_path(const char* full_original_path, char* full_inverted_path, unsigned int length) {
+    int index_of_last_slash = get_index_of_last_slash(full_original_path, length);
+
+    if (index_of_last_slash != -1) {
+        copy(full_original_path, full_inverted_path, 0, 0, index_of_last_slash);
+        full_inverted_path[index_of_last_slash] = SLASH;
+    }
+
+    copy_inverted(full_original_path,
+                  full_inverted_path,
+                  length,
+                  index_of_last_slash + 1,
+                  length - index_of_last_slash - 1);
+
+    full_inverted_path[length] = NULL_TERMINATOR;
+}
+
+/*
+ * Reads "size" bytes from the "input_file" (from the end) and writes them to the "output_file" (from the start).
+ * Preliminarily, it had to be "fseek to end - 1" on "input_file"
+ */
 int read_file_and_write_inverted(FILE* input_file, FILE* output_file, long size) {
     for (long i = 0; i < size; i++) {
         int c;
@@ -70,6 +139,32 @@ int read_file_and_write_inverted(FILE* input_file, FILE* output_file, long size)
     return SUCCESS;
 }
 
+/*
+ * Makes dir with the given path and with all rights for everyone
+ */
+int make_dir(const char* path) {
+    EXECUTE(mkdir(path, 0040000), ERROR)
+
+    /*
+     * (1 << 12) - 1 means all rights for everyone
+     */
+    static const int MODE = (1 << 12) - 1;
+    EXECUTE(chmod(path, MODE), ERROR)
+
+    return SUCCESS;
+}
+
+/*
+ * Returns whether the "string" is "." or ".."
+ */
+bool is_dot_or_two_dots(const char* string) {
+    return strcmp(string, ".") == 0 || strcmp(string, "..") == 0;
+}
+
+/*
+ * Creates a file in the "inverted_path" with the inverted "name" and writes all bytes from {original_path}/{name}
+ * there (inverted)
+ */
 int invert_file(const char* original_path, const char* inverted_path, const char* name) {
     const unsigned int path_length = strlen(original_path);
     const unsigned int name_length = strlen(name);
@@ -101,29 +196,9 @@ int invert_file(const char* original_path, const char* inverted_path, const char
     return SUCCESS;
 }
 
-int make_dir(const char* path) {
-    EXECUTE(mkdir(path, 0040000), ERROR)
-
-    /*
-     * (1 << 12) - 1 means all right for the others
-     */
-    static const int MODE = (1 << 12) - 1;
-    EXECUTE(chmod(path, MODE), ERROR)
-
-    return SUCCESS;
-}
-
-void write_inverted(const char* original, char* inverted, unsigned int length) {
-    for (unsigned int i = 0; i < length; i++) {
-        inverted[i] = original[length - i - 1];
-    }
-    inverted[length] = '\0';
-}
-
-bool is_dot_or_two_dots(const char* string) {
-    return strcmp(string, ".") == 0 || strcmp(string, "..") == 0;
-}
-
+/*
+ * Reads the whole directory, inverts all regular files inside and calls handle_directory() for every subdirectory
+ */
 int handle_directory(const char* full_original_directory_path, const char* full_inverted_directory_path) {
     const unsigned int current_path_length = strlen(full_original_directory_path);
 
@@ -171,7 +246,14 @@ int handle_directory(const char* full_original_directory_path, const char* full_
         }
         if (S_ISREG(current_file_info.st_mode)) {
             char inverted_name[current_file_name_length + 1];
-            write_inverted(current_file->d_name, inverted_name, current_file_name_length);
+
+            copy_inverted(current_file->d_name,
+                          inverted_name,
+                          current_file_name_length,
+                          0,
+                          current_file_name_length);
+
+            inverted_name[current_file_name_length] = NULL_TERMINATOR;
             invert_file(full_original_directory_path,
                         full_inverted_directory_path,
                         current_file->d_name);
@@ -183,45 +265,6 @@ int handle_directory(const char* full_original_directory_path, const char* full_
     EXECUTE(closedir(original_directory), ERROR)
 
     return SUCCESS;
-}
-
-int get_index_of_last_slash(const char* string, unsigned int length) {
-    /*
-     * Returns index of last '/' or -1 if there is no '/' in the "string"
-     */
-
-    int result = (int) length - 1;
-    while (result > -1 && string[result] != SLASH) {
-        result--;
-    }
-    return result;
-}
-unsigned int get_effective_length(const char* string) {
-    /*
-     * If the "string" doesn't end with '/' returns strlen(string), else — strlen(string) - 1
-     */
-
-    unsigned int length = strlen(string);
-    if (string[length - 1] == SLASH) {
-        length--;
-    }
-    return length;
-}
-void write_inverted_path(const char* full_original_path, char* full_inverted_path, unsigned int length) {
-    int index_of_last_slash = get_index_of_last_slash(full_original_path, length);
-
-    if (index_of_last_slash != -1) {
-        copy(full_original_path, full_inverted_path, 0, 0, index_of_last_slash);
-        full_inverted_path[index_of_last_slash] = SLASH;
-    }
-
-    copy_inverted(full_original_path,
-                  full_inverted_path,
-                  length,
-                  index_of_last_slash + 1,
-                  length - index_of_last_slash - 1);
-
-    full_inverted_path[length] = NULL_TERMINATOR;
 }
 
 int main(int argc, char** argv) {
@@ -243,7 +286,7 @@ int main(int argc, char** argv) {
      * So basically, "full_original_path" splits into segments by '/' and the last segment inverts
      */
     char full_inverted_path[effective_length + 1];
-    write_inverted_path(full_original_path, full_inverted_path, effective_length);
+    write_start_inverted_path(full_original_path, full_inverted_path, effective_length);
 
     EXECUTE(make_dir(full_inverted_path), ERROR)
 
