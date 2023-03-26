@@ -1,6 +1,7 @@
 #include <malloc.h>
 #include <time.h>
 #include "utils.h"
+#include "config.h"
 
 unsigned int iterate(const struct InputData* input_data, double* result) {
     const double* A = input_data->A;
@@ -15,15 +16,16 @@ unsigned int iterate(const struct InputData* input_data, double* result) {
     double* r = allocate_vector(n);
     double* A_z = allocate_vector(n);
 
-    double alpha = 0;
-    double beta = 0;
-    double alpha_numerator = 0;
+    double alpha_numerator;
+    double alpha;
+    double beta;
     double Az_z_ddot;
-    double b_nrm_epsilon_squared;
+    double b_nrm_epsilon_squared = 0;
     double r_nrm_squared = 0;
 
+    unsigned int checks_count = 0;
+
     // Calculating |b|^2 * epsilon^2
-    b_nrm_epsilon_squared = 0;
     for (unsigned int i = 0; i < n; i++) {
         b_nrm_epsilon_squared += b[i] * b[i];
     }
@@ -41,7 +43,13 @@ unsigned int iterate(const struct InputData* input_data, double* result) {
     }
 
     while (1) {    
-        if (iterations_count > max_iterations_count || r_nrm_squared < b_nrm_epsilon_squared) {
+        if (r_nrm_squared < b_nrm_epsilon_squared) {
+            checks_count++;
+        } 
+        else {
+            checks_count = 0;
+        }
+        if (iterations_count > max_iterations_count || checks_count > CHECKS_COUNT) {
             break;
         }
 
@@ -91,15 +99,15 @@ unsigned int iterate(const struct InputData* input_data, double* result) {
 }
 
 int main() {
-    const time_t start_time = clock();
+    const double start_time = (double) clock();
 
     const struct InputData input_data = create_input_data();
     double* result = allocate_vector(input_data.n);
     unsigned int iterations_count = iterate(&input_data, result);
 
-    const time_t end_time = clock();
+    const double end_time = (double) clock();
 
-    print_result_info(start_time / 1000, 
+    print_result_info(start_time / 1000,
                       end_time / 1000, 
                       iterations_count, 
                       input_data.A, 

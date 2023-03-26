@@ -1,10 +1,9 @@
 #include <malloc.h>
-#include <string.h>
 #include <math.h>
 #include "utils.h"
 #include "config.h"
 
-double ddot(const double* vector1, const double* vector2, unsigned int size) {
+double ddot_utils(const double* vector1, const double* vector2, unsigned int size) {
     double result = 0;    
 
     for (unsigned int i = 0; i < size; i++) {
@@ -14,13 +13,13 @@ double ddot(const double* vector1, const double* vector2, unsigned int size) {
     return result;
 }
 
-void multiply_vector_by_matrix(const double* matrix, const double* vector, unsigned int x_size, unsigned int y_size, double* result) {
+void multiply_vector_by_matrix_utils(const double* matrix, const double* vector, unsigned int x_size, unsigned int y_size, double* result) {
     for (unsigned int i = 0; i < y_size; i++) {
-       result[i] = ddot(vector, matrix + i * x_size, x_size);
+       result[i] = ddot_utils(vector, matrix + i * x_size, x_size);
     }
 }
 
-void subtract_vectors(double* result, const double* subtrahend, unsigned int size) {
+void subtract_vectors_utils(double* result, const double* subtrahend, unsigned int size) {
     for (unsigned int i = 0; i < size; i++) {
         result[i] -= subtrahend[i];
     }
@@ -41,11 +40,11 @@ struct InputData create_input_data() {
 
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
-            A[N * i + j] = get_A_ij(i, j);
+            A[N * i + j] = GET_A_IJ(i, j);
         }
 
-        b[i] = get_b_i(i);
-        x0[i] = get_x0_i(i);
+        b[i] = GET_B_I(i);
+        x0[i] = GET_X0_I(i);
     }
 
     struct InputData ret = {
@@ -60,29 +59,22 @@ struct InputData create_input_data() {
     return ret;
 }
 
-void print_delta(const double* A, const double* b, const double* result) {
+double calculate_delta(const double* A, const double* b, const double* result) {
     double* buffer = allocate_vector(N);
-    multiply_vector_by_matrix(A, result, N, N, buffer);
-    subtract_vectors(buffer, b, N);
-    const double delta = sqrt(ddot(buffer, buffer, N));
+    multiply_vector_by_matrix_utils(A, result, N, N, buffer);
+    subtract_vectors_utils(buffer, b, N);
+    const double delta = sqrt(ddot_utils(buffer, buffer, N));
     free(buffer);
-    
-    if (isnan(delta) || isinf(delta)) {
-        printf("The process diverged\n");
-    } 
-    else {
-        printf("|Ax - b| = %lf\n", delta);
-    }
+    return delta;
 }
 
 void print_result_info(double start_time, double end_time, unsigned int iterations_count, const double* A, const double* b, const double* result) {
-    printf("Time: %.0f ms\n", end_time - start_time);
+    const double delta = calculate_delta(A, b, result);
+    const double total_time_ms = end_time - start_time;
 
-    if (iterations_count >= MAX_ITERATIONS_COUNT) {
-        printf("Didn't converge in %u iterations\n", MAX_ITERATIONS_COUNT);
-    }
-    else {
-        printf("Iterations: %u\n", iterations_count);
-        print_delta(A, b, result);
-    }    
+    printf("Converged                            %d\n", iterations_count < MAX_ITERATIONS_COUNT && !isnan(delta) && !isinf(delta));
+    printf("Delta                                %f\n", delta);
+    printf("Time (ms)                            %.0f\n", total_time_ms);
+    printf("Iterations                           %u\n", iterations_count);
+    printf("Average iteration time (ms)          %f\n", total_time_ms / (double) iterations_count);
 }
