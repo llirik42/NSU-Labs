@@ -9,16 +9,6 @@
 #define ERROR (-1)
 #define SUCCESS 0
 
-#define EXECUTE(CALL, ERROR_VALUE) if ((CALL) == (ERROR_VALUE)) {perror(NULL); return ERROR;}
-#define EXECUTE_AND_RETURN(DEST, CALL, ERROR_VALUE) { \
-    typeof(DEST) tmp = (CALL);                        \
-    if (tmp == ERROR_VALUE) {                         \
-        perror(NULL);                                 \
-        return ERROR;                                 \
-    }                                                 \
-    DEST = tmp;                                       \
-}
-
 /*
  * Returns index of last '/' or -1 if there is no '/' in the "string"
  */
@@ -45,10 +35,9 @@ unsigned int get_effective_length(const char* string) {
  * Copies "count" bytes from one buffer to another and
  * to[to_start_index + i] = from[from_start_index + i];
  */
-void copy(const char* from, char* to, unsigned int from_start_index, unsigned int to_start_index,
-          unsigned int count) {
+void copy(const char* from, char* to, unsigned int from_start_index, unsigned int to_start_index, unsigned int count) {
     for (unsigned int i = 0; i < count; i++) {
-        to[to_start_index + i] = from[from_start_index + i];
+        memcpy(to + to_start_index, from + from_start_index, count);
     }
 }
 
@@ -56,8 +45,7 @@ void copy(const char* from, char* to, unsigned int from_start_index, unsigned in
  * Copies and inverts "count" bytes from one buffer to another and
  * to[to_start_index + i] = from[from_end_index - i - 1];
  */
-void copy_inverted(const char* from, char* to, unsigned int from_end_index, unsigned int to_start_index,
-                   unsigned int count) {
+void copy_inverted(const char* from, char* to, unsigned int from_end_index, unsigned int to_start_index, unsigned int count) {
     for (unsigned int i = 0; i < count; i++) {
         to[to_start_index + i] = from[from_end_index - i - 1];
     }
@@ -124,15 +112,23 @@ void write_start_inverted_path(const char* full_original_path, char* full_invert
  * Reads "size" bytes from the "input_file" (from the end) and writes them to the "output_file" (from the start).
  * Preliminarily, it had to be "fseek to end - 1" on "input_file"
  */
-int read_file_and_write_inverted(FILE* input_file, FILE* output_file, long size) {
+int read_file_and_write_inverted(FILE* input_file, FILE* output_file, const char* input_file_name, const char* output_file_name, long size) {
     for (long i = 0; i < size; i++) {
-        int c;
-        EXECUTE_AND_RETURN(c, getc(input_file), EOF)
+        int c = getc(input_file);
 
-        EXECUTE(fputc(c, output_file), EOF)
+        if (c == EOF) {
+            perror(input_file_name);
+            return ERROR;
+        }
 
-        if (i != size - 1) {
-            EXECUTE(fseek(input_file, SEEK_SET - 2, SEEK_CUR), ERROR)
+        if (fputc(c, output_file) == EOF) {
+            perror(output_file_name);
+            return ERROR;
+        }
+
+        if (i != size - 1 && fseek(input_file, SEEK_SET - 2, SEEK_CUR) == -1) {
+            perror(input_file_name);
+            return ERROR;
         }
     }
 
@@ -140,17 +136,13 @@ int read_file_and_write_inverted(FILE* input_file, FILE* output_file, long size)
 }
 
 /*
- * Makes dir with the given path and with all rights for everyone
+ * Makes dir with the given path and mode
  */
-int make_dir(const char* path) {
-    EXECUTE(mkdir(path, 0040000), ERROR)
-
-    /*
-     * (1 << 12) - 1 means all rights for everyone
-     */
-    static const int MODE = (1 << 12) - 1;
-    EXECUTE(chmod(path, MODE), ERROR)
-
+int make_dir(const char* path, mode_t mode) {
+    if (mkdir(path, mode) == -1) {
+        perror(path);
+        return ERROR;
+    }
     return SUCCESS;
 }
 
@@ -175,23 +167,74 @@ int invert_file(const char* original_path, const char* inverted_path, const char
     write_full_original_path(original_path, name, full_original_path);
     write_full_inverted_path(inverted_path, name, full_inverted_path);
 
-    FILE* input_file;
-    EXECUTE_AND_RETURN(input_file, fopen(full_original_path, "r"), NULL)
+    FILE* input_file = fopen(full_original_path, "r");
+    if (input_file == NULL) {
+        perror(full_original_path);
+        return ERROR;
+    }
 
-    FILE* output_file;
-    EXECUTE_AND_RETURN(output_file, fopen(full_inverted_path, "w"), NULL)
+    FILE* output_file = fopen(full_inverted_path, "w");
+    if (output_file == NULL) {
+        perror(full_inverted_path);
+        if (fclose(input_file) == EOF) {
+            perror(full_original_path);
+        }
+        return ERROR;
+    }
 
-    EXECUTE(fseek(input_file, SEEK_SET, SEEK_END), ERROR)
+    if (fseek(input_file, SEEK_SET, SEEK_END) == -1) {
+        if (fclose(input_file) == EOF) {
+            perror(full_original_path);
+        }
+        if (fclose(output_file) == EOF) {
+            perror(full_inverted_path);
+        }
+        return ERROR;
+    }
 
-    long size;
-    EXECUTE_AND_RETURN(size, ftell(input_file), ERROR)
+    const long size = ftell(input_file);
+    if (size == 0) {
+        return SUCCESS;
+    }
 
-    EXECUTE(fseek(input_file, SEEK_SET - 1, SEEK_CUR), ERROR)
+    if (size == -1) {
+        if (fclose(input_file) == EOF) {
+            perror(full_original_path);
+        }
 
-    read_file_and_write_inverted(input_file, output_file, size);
+        if (fclose(output_file) == EOF) {
+            perror(full_inverted_path);
+        }
 
-    EXECUTE(fclose(input_file), EOF)
-    EXECUTE(fclose(output_file), EOF)
+        return ERROR;
+    }
+
+    if (fseek(input_file, SEEK_SET - 1, SEEK_CUR) == -1) {
+        if (fclose(input_file) == EOF) {
+            perror(full_original_path);
+        }
+
+        if (fclose(output_file) == EOF) {
+            perror(full_inverted_path);
+        }
+
+        return ERROR;
+    }
+
+    int code = read_file_and_write_inverted(input_file,
+                                            output_file,
+                                            full_original_path,
+                                            full_inverted_path,
+                                            size);
+    if (code == ERROR) {
+        if (fclose(input_file) == EOF) {
+            perror(full_original_path);
+        }
+        if (fclose(output_file) == EOF) {
+            perror(full_inverted_path);
+        }
+        return ERROR;
+    }
 
     return SUCCESS;
 }
@@ -200,16 +243,38 @@ int invert_file(const char* original_path, const char* inverted_path, const char
  * Reads the whole directory, inverts all regular files inside and calls handle_directory() for every subdirectory
  */
 int handle_directory(const char* full_original_directory_path, const char* full_inverted_directory_path) {
+    struct stat original_directory_info;
+    if (stat(full_original_directory_path, &original_directory_info) == -1) {
+        perror(full_original_directory_path);
+        return ERROR;
+    }
+    if (make_dir(full_inverted_directory_path, original_directory_info.st_mode) == -1) {
+        perror(full_inverted_directory_path);
+        return ERROR;
+    }
+
     const unsigned int current_path_length = strlen(full_original_directory_path);
 
-    DIR* original_directory;
-    EXECUTE_AND_RETURN(original_directory, opendir(full_original_directory_path), NULL)
+    bool error = false;
+    DIR* original_directory = opendir(full_original_directory_path);
+    if (original_directory == NULL) {
+        perror(full_original_directory_path);
+        return ERROR;
+    }
 
-    struct dirent* current_file;
-    EXECUTE_AND_RETURN(current_file, readdir(original_directory), (void*)ERROR)
+    struct dirent* current_file = readdir(original_directory);
+
+    /*
+     * On Linux there are always files "." and ".." in every directory.
+     * That's why "current_file" can't be empty because of the empty directory and it only can be empty in case of an error.
+     */
+    if (current_file == NULL) {
+        perror(full_original_directory_path);
+        error = true;
+    }
+
     struct stat current_file_info;
-
-    while (current_file) {
+    while (current_file && !error) {
         if (is_dot_or_two_dots(current_file->d_name)) {
             current_file = readdir(original_directory);
             continue;
@@ -228,19 +293,18 @@ int handle_directory(const char* full_original_directory_path, const char* full_
                                  current_file->d_name,
                                  full_inverted_file_path);
 
-        EXECUTE(stat(full_original_file_path, &current_file_info), ERROR)
+        if (stat(full_original_file_path, &current_file_info) == -1) {
+            perror(full_original_file_path);
+            error = true;
+            break;
+        }
 
         if (S_ISDIR(current_file_info.st_mode)) {
-            if (make_dir(full_inverted_file_path) == ERROR) {
-                perror(NULL);
-                break;
-            }
-
             const int code_of_handle = handle_directory(full_original_file_path,
                                                         full_inverted_file_path);
 
             if (code_of_handle == ERROR) {
-                perror(NULL);
+                error = true;
                 break;
             }
         }
@@ -254,17 +318,26 @@ int handle_directory(const char* full_original_directory_path, const char* full_
                           current_file_name_length);
 
             inverted_name[current_file_name_length] = NULL_TERMINATOR;
-            invert_file(full_original_directory_path,
-                        full_inverted_directory_path,
-                        current_file->d_name);
+
+            int code = invert_file(full_original_directory_path,
+                                   full_inverted_directory_path,
+                                   current_file->d_name);
+
+            if (code == ERROR) {
+                error = true;
+                break;
+            }
         }
 
         current_file = readdir(original_directory);
     }
 
-    EXECUTE(closedir(original_directory), ERROR)
+    if (closedir(original_directory) == -1) {
+        perror(full_original_directory_path);
+        return ERROR;
+    }
 
-    return SUCCESS;
+    return error ? ERROR : SUCCESS;
 }
 
 int main(int argc, char** argv) {
@@ -287,8 +360,6 @@ int main(int argc, char** argv) {
      */
     char full_inverted_path[effective_length + 1];
     write_start_inverted_path(full_original_path, full_inverted_path, effective_length);
-
-    EXECUTE(make_dir(full_inverted_path), ERROR)
 
     return handle_directory(full_original_path, full_inverted_path);
 }
