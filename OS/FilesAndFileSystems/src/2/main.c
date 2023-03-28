@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #define ERROR (-1)
 
@@ -24,9 +25,19 @@ int make_dir(const char* path) {
     return code;
 }
 
+char get_file_type(mode_t mode) {
+    switch (mode) {
+        case DT_LNK: return 'l';
+        case DT_REG: return '-';
+        case DT_DIR: return 'd';
+        case DT_FIFO: return 'p';
+        case DT_CHR: return 'c';
+        case DT_BLK: return 'b';
+        case DT_SOCK: return 's';
+        default: return 'u';
+    }
+}
 int print_directory_content(const char* directory_path) {
-    const unsigned int directory_path_len = strlen(directory_path);
-
     DIR* directory = opendir(directory_path);
 
     if (directory == NULL) {
@@ -34,57 +45,35 @@ int print_directory_content(const char* directory_path) {
         return ERROR;
     }
 
-    struct dirent* file = readdir(directory);
-    while (file) {
-        const unsigned int file_name_len = strlen(file->d_name);
-        char full_file_path[directory_path_len + file_name_len + 2];
-        memcpy(full_file_path, directory_path, directory_path_len);
-        memcpy(full_file_path + directory_path_len + 1, file->d_name, file_name_len);
-        full_file_path[directory_path_len] = '/';
-        full_file_path[directory_path_len + file_name_len + 1] = '\0';
+    while (1) {
+        /*
+         * readdir() (3) can return NULL in two cases
+         * 1) We reached the end of the directory stream
+         * 2) Some error occurred during reading the next file (but in this case errno sets appropriately)
+         *
+         * So we have to distinguish these cases. That's why we set errno to zero and then checks if it's non-zero
+         */
+        errno = 0;
+        const struct dirent* file = readdir(directory);
 
-        struct stat file_info;
-        if (stat(full_file_path, &file_info) == -1) {
-            perror(file->d_name);
-        }
-
-        mode_t mode = file_info.st_mode;
-
-//        if (mode == DT_LNK) {
-//            printf("l ");
-//        }
-
-        if (S_ISREG(mode)) {
-            printf("-");
-        }
-        else if (S_ISDIR(mode)) {
-            printf("d");
-        }
-        else if (S_ISFIFO(mode)) {
-            printf("p");
-        }
-        else if (S_ISSOCK(mode)) {
-            printf("s");
-        }
-        else if (S_ISLNK(mode)) {
-            printf("l");
-        }
-        else if (S_ISCHR(mode)) {
-            printf("c");
-        }
-        else if (S_ISBLK(mode)) {
-            printf("b");
-        }
-        else {
-            printf("u");
+        if (errno) {
+            perror(directory_path);
+            break;
         }
 
-        printf("        %s %ld\n",file->d_name, file_info.st_size);
+        if (file == NULL) {
+            break;
+        }
 
-        file = readdir(directory);
+        printf("%c                %s\n", get_file_type(file->d_type),  file->d_name);
     }
 
-    return -1;
+    const int closing_code = closedir(directory);
+    if (closing_code == -1) {
+        perror(directory_path);
+    }
+
+    return closing_code;
 }
 
 int remove_file(const char* path) {
