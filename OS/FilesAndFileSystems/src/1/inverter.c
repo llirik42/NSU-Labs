@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #define SLASH '/'
 #define NULL_TERMINATOR '\0'
@@ -340,7 +341,20 @@ int handle_directory(const char* full_original_directory_path, const char* full_
             }
         }
 
+        /*
+         * readdir() (3) can return NULL in two cases
+         * 1) We reached the end of the directory stream
+         * 2) Some error occurred during reading the next file (but in this case errno sets appropriately)
+         *
+         * So we have to distinguish these cases. That's why we set errno to zero and then checks it it's non-zero
+         */
+        errno = 0;
         current_file = readdir(original_directory);
+        if (errno) {
+            perror(full_original_directory_path);
+            error = true;
+            break;
+        }
     }
 
     if (closedir(original_directory) == -1) {
