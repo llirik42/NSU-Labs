@@ -37,11 +37,11 @@ char get_file_type(mode_t mode) {
         default: return 'u';
     }
 }
-int print_directory_content(const char* directory_path) {
-    DIR* directory = opendir(directory_path);
+int print_directory_content(const char* path) {
+    DIR* directory = opendir(path);
 
     if (directory == NULL) {
-        perror(directory_path);
+        perror(path);
         return ERROR;
     }
 
@@ -57,7 +57,7 @@ int print_directory_content(const char* directory_path) {
         const struct dirent* file = readdir(directory);
 
         if (errno) {
-            perror(directory_path);
+            perror(path);
             break;
         }
 
@@ -70,14 +70,33 @@ int print_directory_content(const char* directory_path) {
 
     const int closing_code = closedir(directory);
     if (closing_code == -1) {
-        perror(directory_path);
+        perror(path);
     }
 
     return closing_code;
 }
 
+
+
+
+
+
 int remove_file(const char* path) {
-    const int code = unlink(path);
+    const int code = remove(path);
+
+    if (code == -1) {
+        perror(path);
+    }
+
+    return code;
+}
+
+
+
+
+
+int remove_directory(const char* path) {
+    const int code = remove(path);
 
     if (code == -1) {
         perror(path);
@@ -111,8 +130,6 @@ int make_file(const char* path) {
 
 
 int main() {
-    print_directory_content("../dir");
-
     //make_dir("../new_dir");
     return 0;
 }
