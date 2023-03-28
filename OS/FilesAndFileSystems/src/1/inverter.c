@@ -346,7 +346,7 @@ int handle_directory(const char* full_original_directory_path, const char* full_
          * 1) We reached the end of the directory stream
          * 2) Some error occurred during reading the next file (but in this case errno sets appropriately)
          *
-         * So we have to distinguish these cases. That's why we set errno to zero and then checks it it's non-zero
+         * So we have to distinguish these cases. That's why we set errno to zero and then checks if it's non-zero
          */
         errno = 0;
         current_file = readdir(original_directory);
