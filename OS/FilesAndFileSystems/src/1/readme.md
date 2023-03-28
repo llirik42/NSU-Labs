@@ -1,4 +1,4 @@
 # Компиляция и линковка
     $ gcc inverter.c -o inverter
 # Запуск
-    $ ./inverter ./some_dir
+    $ ./inverter <path to the dir>

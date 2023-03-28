@@ -3,6 +3,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdbool.h>
+#include <fcntl.h>
 
 #define SLASH '/'
 #define NULL_TERMINATOR '\0'
@@ -157,7 +158,7 @@ bool is_dot_or_two_dots(const char* string) {
  * Creates a file in the "inverted_path" with the inverted "name" and writes all bytes from {original_path}/{name}
  * there (inverted)
  */
-int invert_file(const char* original_path, const char* inverted_path, const char* name) {
+int invert_file(const char* original_path, const char* inverted_path, const char* name, mode_t mode) {
     const unsigned int path_length = strlen(original_path);
     const unsigned int name_length = strlen(name);
 
@@ -173,7 +174,16 @@ int invert_file(const char* original_path, const char* inverted_path, const char
         return ERROR;
     }
 
-    FILE* output_file = fopen(full_inverted_path, "w");
+    const int output_fd = creat(full_inverted_path, mode);
+    if (output_fd == -1) {
+        perror(full_inverted_path);
+        if (fclose(input_file) == EOF) {
+            perror(full_original_path);
+        }
+        return ERROR;
+    }
+
+    FILE* output_file = fdopen(output_fd, "w");
     if (output_file == NULL) {
         perror(full_inverted_path);
         if (fclose(input_file) == EOF) {
@@ -321,7 +331,8 @@ int handle_directory(const char* full_original_directory_path, const char* full_
 
             int code = invert_file(full_original_directory_path,
                                    full_inverted_directory_path,
-                                   current_file->d_name);
+                                   current_file->d_name,
+                                   current_file_info.st_mode);
 
             if (code == ERROR) {
                 error = true;
