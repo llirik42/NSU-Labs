@@ -76,35 +76,6 @@ int print_directory_content(const char* path) {
     return closing_code;
 }
 
-
-
-
-
-
-int remove_file(const char* path) {
-    const int code = remove(path);
-
-    if (code == -1) {
-        perror(path);
-    }
-
-    return code;
-}
-
-
-
-
-
-int remove_directory(const char* path) {
-    const int code = remove(path);
-
-    if (code == -1) {
-        perror(path);
-    }
-
-    return code;
-}
-
 int make_file(const char* path) {
     const int fd = creat(path, S_IRWXU);
 
@@ -125,11 +96,35 @@ int make_file(const char* path) {
 
 
 
+int remove_file(const char* path) {
+    const int code = remove(path);
+
+    if (code == -1) {
+        perror(path);
+    }
+
+    return code;
+}
+
+int remove_directory(const char* path) {
+    const int code = remove(path);
+
+    if (code == -1) {
+        perror(path);
+    }
+
+    return code;
+}
+
+
+
+
+
 
 
 
 
 int main() {
-    //make_dir("../new_dir");
+    remove_file("../new_dir");
     return 0;
 }
