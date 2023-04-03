@@ -1,15 +1,16 @@
 #include <stdio.h>
-#include <unistd.h>
 #include <libgen.h>
 #include <string.h>
+#include <getopt.h>
 #include "config.h"
 
 #define WIDTH 32
 
 void print_help() {
-    printf("USAGE [-g] [-h]\n\n");
+    printf("USAGE [-c] [-h]\n\n");
 
-    printf("OPTIONS\n    -g - generate hard links\n    -h - help\n\n");
+    printf("OPTIONS\n    -c, --create-hard-links         create hard links\n    -h, --help"
+           "                      help\n\n");
 
     printf("LINKS\n");
 
@@ -36,6 +37,11 @@ int create_hard_links(const char* source) {
 }
 
 int main(int argc, char** argv) {
+    static struct option long_options[] = {
+            {"help", 0, 0, 'h'},
+            {"create-hard-links", 0, 0, 'c'},
+    };
+
     const char* name = basename(argv[0]);
 
     // Matching operation by name
@@ -53,13 +59,14 @@ int main(int argc, char** argv) {
 
     // Reading arguments of command line
     int c;
-    while ((c = getopt(argc, argv, "hg")) != -1) {
+    int option_index = 0;
+    while ((c = getopt_long(argc, argv, "hc", long_options, &option_index)) != -1) {
         switch (c) {
             case 'h':
                 print_help();
                 break;
 
-            case 'g':
+            case 'c':
                 create_hard_links(argv[0]);
                 break;
 
@@ -69,3 +76,4 @@ int main(int argc, char** argv) {
         }
     }
 }
+
