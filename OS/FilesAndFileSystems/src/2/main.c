@@ -37,7 +37,7 @@ int create_hard_links(const char* source) {
 }
 
 int main(int argc, char** argv) {
-    static struct option long_options[] = {
+    const struct option long_options[] = {
             {"help", 0, 0, 'h'},
             {"create-hard-links", 0, 0, 'c'},
     };
