@@ -21,12 +21,12 @@ void print_help() {
 }
 
 void print_see_help() {
-    printf("See --help (-h).\n");
+    fprintf(stderr, "See --help (-h).\n");
 }
 
 void print_columns_titles() {
     printf("PAGE                     PRESENT        SWAPPED        FILE        SOFT_DIRTY        PHYSICAL"
-           "               REGION\n");
+           "                       REGION\n");
 }
 
 void print_page_data(long page_index, u_int64_t page_data, const char* region_name) {
@@ -35,7 +35,7 @@ void print_page_data(long page_index, u_int64_t page_data, const char* region_na
     const bool swapped = (page_data >> 62) & 1;
     const bool present = (page_data >> 63) & 1;
     const u_int64_t physical = page_data & (((u_int64_t)1 << 54) - 1);
-    printf("%-16ld         %d              %d              %d           %d                 %#-8lx              %s",
+    printf("%-16ld         %d              %d              %d           %d                 %#-16lx              %s",
            page_index, present, swapped, file_page, soft_dirty, physical, region_name);
 }
 
@@ -203,3 +203,4 @@ int main(int argc, char** argv) {
 
     return closing_error ? ERROR_CODE : SUCCESS;
 }
+
