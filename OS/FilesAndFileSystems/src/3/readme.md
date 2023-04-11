@@ -1,7 +1,7 @@
 # Компиляция и линковка
     $ gcc main.c -o main.out
 # Запуск
-    $ ./main -h
+    $ ./main.out -h
 
-    $ sudo ./main [-p PID]
+    $ sudo ./main.out [-p PID]
     
