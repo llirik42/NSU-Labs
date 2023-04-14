@@ -25,7 +25,7 @@ void print_see_help() {
 }
 
 void print_columns_titles() {
-    printf("PAGE                     PRESENT        SWAPPED        FILE        SOFT_DIRTY        PHYSICAL"
+    printf("PAGE                     PRESENT        SWAPPED        FILE        SOFT_DIRTY        PHYSICAL_PAGE"
            "                       REGION\n");
 }
 
@@ -34,9 +34,9 @@ void print_page_data(long page_index, u_int64_t page_data, const char* region_na
     const bool file_page = (page_data >> 61) & 1;
     const bool swapped = (page_data >> 62) & 1;
     const bool present = (page_data >> 63) & 1;
-    const u_int64_t physical = page_data & (((u_int64_t)1 << 54) - 1);
-    printf("%-16ld         %d              %d              %d           %d                 %#-16lx              %s",
-           page_index, present, swapped, file_page, soft_dirty, physical, region_name);
+    const u_int64_t physical_page_index = page_data & (((u_int64_t)1 << 54) - 1);
+    printf("%-16lx         %d              %d              %d           %d                 %#-16lx                  %s",
+           page_index, present, swapped, file_page, soft_dirty, physical_page_index, region_name);
 }
 
 unsigned long long stringToLongLong(const char* string) {
