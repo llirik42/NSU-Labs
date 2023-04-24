@@ -5,4 +5,4 @@
 * [Интерпретация таблицы маршрутизации](Interpretation-of-routing-table)
 * [Wi-Fi](Wi-Fi)
 * [NAT](NAT)
-* [DNS+Cluster](DNS+Cluster)
+* [DNS + Cluster](DNS+Cluster)
