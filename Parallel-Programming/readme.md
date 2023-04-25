@@ -1,6 +1,6 @@
 # Практические работы по предмету «Основы параллельного программирования»
 
-* [Two Vectors](VectorsOperation)
+* [Два вектора](VectorsOperation)
 * [СЛАУ + MPI](SLAE+MPI)
 * [СЛАУ + OpenMP](SLAE+OpenMP)
-* [Matrices Multiplication](MatricesMultiplication)
+* [Умножение матриц](MatricesMultiplication)
