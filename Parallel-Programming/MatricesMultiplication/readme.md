@@ -51,4 +51,4 @@
 - `MPI_Type_struct()`
 - `MPI_Type_create_resized()`
 
-## Файл, который может пригодиться при выполнении работы — (MPI_from_Meleshko)[MPI_from_Meleshko]
+## Файл, который может пригодиться при выполнении работы — (MPI_from_Meleshko)[MPI_from_Meleshko.pdf]
