@@ -4,13 +4,13 @@
 #include "matrix.h"
 
 struct AlgorithmData {
+    int p1;
+    int p2;
     int n1;
     int n2;
     int n3;
-    int p1;
-    int p2;
-    struct Matrix* a;
-    struct Matrix* b;
+    double* a;
+    double* b;
 };
 
 struct AlgorithmData get_algorithm_data();
