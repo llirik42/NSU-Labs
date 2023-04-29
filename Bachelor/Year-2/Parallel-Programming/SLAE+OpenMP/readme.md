@@ -10,21 +10,36 @@
 
 Последовательная программа может быть скомпилирована обычным образом (здесь и далее ключ *-lm* нужен для использования библиотеки «math.h»):
 
-    $ gcc sequential.c utils.c -o sequential -lm
+```Bash
+    gcc sequential.c utils.c -o sequential -lm
+```
 
 или
 
-    $ icc sequential.c utils.c -o sequential -lm
+```Bash
+    icc sequential.c utils.c -o sequential -lm
+```
 
 Параллельные программы нужно компилировать несколько иначе. Можно использовать различные компиляторы
 
-    $ gcc vectorization.c utils.c -o vectorization -lm -fopenmp
+```Bash
+    gcc vectorization.c utils.c -o vectorization -lm -fopenmp
+```
 
-    $ icc vectorization.c utils.c -o parallel -lm -openmp
+или
+ 
+```Bash
+    icc vectorization.c utils.c -o vectorization -lm -openmp
+```
 
 ## Запуск
-	$ ./sequential
 
-	$ OMP_NUM_THREADS=x ./vectorization
+```Bash
+    ./sequential
+```
+
+```Bash
+    OMP_NUM_THREADS=x ./vectorization
+```
 
 Здесь *x* — число потоков, которое должно быть использовано в программе.

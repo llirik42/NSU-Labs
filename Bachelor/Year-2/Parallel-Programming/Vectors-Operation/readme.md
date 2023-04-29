@@ -25,7 +25,7 @@
 ### Ускорение
 $$S_p = \frac{T_1}{T_p}$$
 
-где $T_1$ — время работы последовательной программы, $T_p$ - время работы параллельной программы на p процессах.
+где $T_1$ — время работы последовательной программы, $T_p$ - время работы параллельной программы на $p$ процессах.
 
 ### Эффективность
 $$E_p = 100\\% \cdot \frac{S_p}{p}$$
@@ -34,28 +34,45 @@ $$E_p = 100\\% \cdot \frac{S_p}{p}$$
 
 Последовательная программа может быть скомпилирована обычным образом
 
-    $ gcc sequential.c utils.c -o sequential.out
+```Bash
+    gcc sequential.c utils.c -o sequential.out
+```
 
 или
 
-    $ icc sequential.c utils.c -o sequential.out
+```Bash
+    icc sequential.c utils.c -o sequential.out
+```
+
 Параллельные программы нужно компилировать несколько иначе. Можно использовать различные компиляторы
 
-    $ mpicc point_to_point.c utils.c -o point_to_point.out
+```Bash
+    mpicc point_to_point.c utils.c -o point_to_point.out
+```
 
-    $ mpiicc point_to_point.c utils.c -o point_to_point.out
+или 
+
+```Bash
+    mpiicc point_to_point.c utils.c -o point_to_point.out
+```
 
 Первый вариант использует надстройку над компилятором `gcc`, второй — над компилятором `icc`. Аналогично можно использовать компиляторы `g++` и `icx`, однако в этом не было нужды, поскольку весь код был написан на языке C, а не на C++. 
 
 ## Запуск
 Последовательная программа запускается как обычная программа 
-    
-    $ ./sequential.out
+
+```Bash
+    ./sequential.out
+```
 
 Параллельные программы нужно запускать, используя одну из следующих команд
 
-    $ mpiexec -n x ./point_to_point.out
+```Bash
+    mpiexec -n x ./point_to_point.out
+```
 
-    $ mpirun -np x ./point_to_point.out
+```Bash
+    mpirun -np x ./point_to_point.out
+```
 
 Здесь *x* — число процессов, которое должно быть использовано в программе. Эти варианты запуска практически аналогичны, так что можно выбрать любой.
