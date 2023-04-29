@@ -4,9 +4,9 @@
 
 1.  Написать 3 программы, каждая из которых рассчитывает число $s$ по двум данным векторам $a$, $b$ равной длины $N$ в соответствии со следующим двойным циклом:
     ```C
-        for (i = 0; i < N; i++)
-            for(j = 0; j < N; j++)
-                s += a[i] * b[j]; 
+    for (i = 0; i < N; i++)
+        for(j = 0; j < N; j++)
+            s += a[i] * b[j]; 
     ````
     1. последовательная программа
     2. параллельная, использующая коммуникации типа «точка-точка»
@@ -35,25 +35,25 @@ $$E_p = 100\\% \cdot \frac{S_p}{p}$$
 ### Последовательная
 
 ```Bash
-    gcc sequential.c utils.c -o sequential.out
+gcc sequential.c utils.c -o sequential.out
 ```
 
 или
 
 ```Bash
-    icc sequential.c utils.c -o sequential.out
+icc sequential.c utils.c -o sequential.out
 ```
 
 ### Параллельная
 
 ```Bash
-    mpicc point_to_point.c utils.c -o point_to_point.out
+mpicc point_to_point.c utils.c -o point_to_point.out
 ```
 
 или 
 
 ```Bash
-    mpiicc point_to_point.c utils.c -o point_to_point.out
+mpiicc point_to_point.c utils.c -o point_to_point.out
 ```
 
 Первый вариант использует надстройку над компилятором `gcc`, второй — над компилятором `icc`. Аналогично можно использовать компиляторы `g++` и `icx`, однако в этом не было нужды, поскольку весь код был написан на языке C, а не на C++. 
@@ -63,19 +63,19 @@ $$E_p = 100\\% \cdot \frac{S_p}{p}$$
 ### Последовательная
 
 ```Bash
-    ./sequential.out
+./sequential.out
 ```
 
 ### Параллельная
 
 ```Bash
-    mpiexec -n x ./point_to_point.out
+mpiexec -n x ./point_to_point.out
 ```
 
 или
 
 ```Bash
-    mpirun -np x ./point_to_point.out
+mpirun -np x ./point_to_point.out
 ```
 
 Здесь *x* — число процессов, которое должно быть использовано в программе. Эти варианты запуска практически аналогичны, так что можно выбрать любой.

@@ -13,25 +13,25 @@
 ### Последовательная
 
 ```Bash
-    gcc sequential.c utils.c -o sequential -lm
+gcc sequential.c utils.c -o sequential -lm
 ```
 
 или
 
 ```Bash
-    icc sequential.c utils.c -o sequential -lm
+icc sequential.c utils.c -o sequential -lm
 ```
 
 ### Параллельная
 
 ```Bash
-    gcc vectorization.c utils.c -o vectorization -lm -fopenmp
+gcc vectorization.c utils.c -o vectorization -lm -fopenmp
 ```
 
 или
  
 ```Bash
-    icc vectorization.c utils.c -o vectorization -lm -openmp
+icc vectorization.c utils.c -o vectorization -lm -openmp
 ```
 
 ## Запуск
@@ -39,13 +39,13 @@
 ### Последовательная
 
 ```Bash
-    ./sequential
+./sequential
 ```
 
 ### Параллельная
 
 ```Bash
-    OMP_NUM_THREADS=x ./vectorization
+OMP_NUM_THREADS=x ./vectorization
 ```
 
 Здесь *x* — число потоков, которое должно быть использовано в программе.
