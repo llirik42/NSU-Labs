@@ -9,5 +9,4 @@
 * [Системы счисления](Numeral-Systems-Calculator)
 
 
-
 ## Семестр 2
