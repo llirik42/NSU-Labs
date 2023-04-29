@@ -72,6 +72,8 @@ $$E_p = 100\\% \cdot \frac{S_p}{p}$$
     mpiexec -n x ./point_to_point.out
 ```
 
+или
+
 ```Bash
     mpirun -np x ./point_to_point.out
 ```
