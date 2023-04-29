@@ -1,3 +1,3 @@
 ```Bash
-	strace -c wget kernel.org
+strace -c wget kernel.org
 ```

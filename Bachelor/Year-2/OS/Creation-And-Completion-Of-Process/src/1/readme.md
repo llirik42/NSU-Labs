@@ -1,25 +1,25 @@
 # Компиляция и линковка
 
 ```Bash
-    gcc main.c -o main
+gcc main.c -o main
 ```
 
 # Запуск
 
 ```Bash
-    ./main
+./main
 ```
 
 # Наблюдение за состоянием процесса
 
 ```Bash
-    watch -n<x> -d cat /proc/<pid>/status
+watch -n x  -d cat /proc/pid/status
 ```
 
 # Наблюдение за адресным пространством процесса
 
 ```Bash
-    watch -n<x> -d cat /proc/<pid>/maps
+watch -n x -d cat /proc/pid/maps
 ```
 
-*<x>* — раз в сколько секунд обновлять информацию, *<pid>* — идентификатор процесса
+*x* — раз в сколько секунд обновлять информацию, *pid* — идентификатор процесса

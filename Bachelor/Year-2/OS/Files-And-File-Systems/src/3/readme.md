@@ -1,15 +1,15 @@
 # Компиляция и линковка
 
 ```Bash
-    gcc main.c -o main.out
+gcc main.c -o main.out
 ```
 
 # Запуск
 
 ```Bash
-    ./main.out -h
+./main.out -h
 ```
 
 ```Bash
-    sudo ./main.out [-p PID]
+sudo ./main.out [-p PID]
 ```

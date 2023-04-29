@@ -1,19 +1,19 @@
 # Компиляция и линковка
 
 ```Bash
-    gcc main.c operations.c utils.c -o main.out
+gcc main.c operations.c utils.c -o main.out
 ```
  
 # Запуск
 
 ```Bash
-    ./main.out -h
+./main.out -h
 ```
 
 ```Bash
-    ./main.out -g
+./main.out -g
 ```
 
 ```Bash
-    <concrete hard link> <parameters for the hard link>
+./hard_link parameter1 parameter2 ...
 ```
