@@ -14,10 +14,16 @@
 
 ```Bash
     nm hello1
+```
 
+```Bash
     ldd hello1
+```
 
+```Bash
     readelf hello1 -h
-    
+```
+
+```Bash
     readelf hello1 -a
 ```

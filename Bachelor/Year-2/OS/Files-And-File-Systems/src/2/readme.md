@@ -8,8 +8,12 @@
 
 ```Bash
     ./main.out -h
+```
 
+```Bash
     ./main.out -g
+```
 
+```Bash
     <concrete hard link> <parameters for the hard link>
 ```
