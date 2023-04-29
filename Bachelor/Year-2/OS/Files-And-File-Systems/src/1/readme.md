@@ -1,4 +1,11 @@
 # Компиляция и линковка
-    $ gcc inverter.c -o inverter
+
+```Bash
+    gcc inverter.c -o inverter
+```
+
 # Запуск
-    $ ./inverter <path to the dir>
+
+```Bash
+    ./inverter <path to the dir>
+```

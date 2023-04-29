@@ -1,4 +1,11 @@
 # Компиляция и линковка
-    $ gcc hello_world.c -o hello_world
+
+```Bash
+    gcc hello_world.c -o hello_world
+```
+
 # Запуск
-    $ strace ./hello_world
+
+```Bash
+    strace ./hello_world
+```

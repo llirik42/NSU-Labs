@@ -1,4 +1,11 @@
 # Компиляция и линковка
-    $ gcc hello_write.c -o hello_write
+
+```Bash
+    gcc hello_write.c -o hello_write
+```
+
 # Запуск
-    $ strace ./hello_write 
+
+```Bash
+    strace ./hello_write 
+```
