@@ -13,7 +13,7 @@ gcc main.c -o main
 # Наблюдение за состоянием процесса
 
 ```Bash
-watch -n x  -d cat /proc/pid/status
+watch -n x -d cat /proc/pid/status
 ```
 
 # Наблюдение за адресным пространством процесса
