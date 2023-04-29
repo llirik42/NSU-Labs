@@ -1,12 +1,11 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
-#include <signal.h>
 
 #define PRINT_VARIABLE(VAR) printf("%-20s%-20p%d\n", #VAR, &(VAR), VAR);
 #define CHILD_PROCESS_ID 0
 
-#define CODE 41
+#define CODE 5
 
 int global_variable = 1;
 
@@ -37,15 +36,11 @@ int main() {
         PRINT_VARIABLE(local_variable)
         printf("\n\n");
 
-        sleep(1);
-
-        //raise(SIGKILL);
-
-        printf("Child terminates with code %d...\n\n", CODE);
-
-        return CODE;
+        printf("Child: I terminate with code %d...\n\n", CODE);
+        
+        _exit(CODE);
     } else {
-        sleep(20000);
+        sleep(1);
 
         printf("Parent after changing\n");
         PRINT_VARIABLE(global_variable)
@@ -56,9 +51,9 @@ int main() {
         wait(&status);
 
         if (WIFSIGNALED(status)) {
-            printf("Child terminated by signal %d\n\n", WTERMSIG(status));
+            printf("Parent: child terminated by signal %d\n\n", WTERMSIG(status));
         }
 
-        printf("Child terminated with code %d\n\n", WEXITSTATUS(status));
+        printf("Parent: child terminated with code %d\n\n", WEXITSTATUS(status));
     }
 }
