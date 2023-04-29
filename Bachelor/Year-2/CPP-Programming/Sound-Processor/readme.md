@@ -7,7 +7,7 @@
 Программа должна запускаться следующим образом:
 
 ```Bash
-	sound_processor [-h] [-c config.txt output.wav input1.wav [input2.wav …]]
+sound_processor [-h] [-c config.txt output.wav input1.wav [input2.wav …]]
 ```
 
 ## Примечание
@@ -24,7 +24,7 @@
 Для тестирования программы можно получить *WAV*-файл в таком формате из любого другого аудиофайла с помощью утилиты `ffmpeg`:
 
 ```Bash
-	ffmpeg -i Radioactive.flac -f wav -bitexact -acodec pcm_s16le -ar 44100 -ac 1 "Radioactive_mono_16bit.wav"
+ffmpeg -i Radioactive.flac -f wav -bitexact -acodec pcm_s16le -ar 44100 -ac 1 "Radioactive_mono_16bit.wav"
 ```
 
 Рекомендуем использовать свои файлы, но можно также воспользоваться готовыми примерами [отсюда](https://drive.google.com/file/d/1wzvJK09WI7UzXciJLKjWT_w6g4JWruWJ/view) (они уже в нужном формате).
@@ -63,7 +63,7 @@
 ## Запуск программы
 
 ```Bash
-	sound_processor [-h] [-c config.txt output.wav input1.wav [input2.wav …]]
+sound_processor [-h] [-c config.txt output.wav input1.wav [input2.wav …]]
 ```
 
 Она должна читать все входные файлы, файл конфигурации, выполнять конверсию и сохранять результат в *output.wav*. *output.wav* должен быть корректным *WAV*-файлом, а значит, содержать правильный заголовок. Но не обязательно копировать заголовки входных потоков. Достаточно сгенерировать минимально необходимый заголовок, чтобы файл можно было открыть в проигрывателе.
