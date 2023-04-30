@@ -8,10 +8,10 @@ import java.util.Map;
 public class CachingInstructionsFactory implements InstructionsFactory {
     private final Map<String, Instruction> cachedInstructions = new HashMap<>();
 
-    private final InstructionsFactory factory;
+    private final InstructionsFactory instructionsFactory;
 
-    public CachingInstructionsFactory() {
-        this.factory = new InstructionsLoadingFactory();
+    public CachingInstructionsFactory(InstructionsFactory instructionsFactory) {
+        this.instructionsFactory = instructionsFactory;
     }
 
     @Override
@@ -19,7 +19,7 @@ public class CachingInstructionsFactory implements InstructionsFactory {
         Instruction instruction;
 
         if (!cachedInstructions.containsKey(instructionName)) {
-            instruction = factory.createInstruction(instructionName);
+            instruction = instructionsFactory.createInstruction(instructionName);
             cachedInstructions.put(instructionName, instruction);
         } else {
             instruction = cachedInstructions.get(instructionName);

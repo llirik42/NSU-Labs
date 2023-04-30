@@ -1,6 +1,7 @@
 package ru.nsu.kondrenko.model.instructions;
 
 import ru.nsu.kondrenko.model.context.Context;
+import ru.nsu.kondrenko.model.exceptions.DivisionByZeroException;
 import ru.nsu.kondrenko.model.exceptions.InstructionException;
 
 public class DivideInstruction implements Instruction {
@@ -10,7 +11,7 @@ public class DivideInstruction implements Instruction {
         double operand2 = context.pop();
 
         if (operand2 == 0) {
-            throw new InstructionException("Division by zero");
+            throw new DivisionByZeroException();
         }
 
         context.pushValue(operand1 / operand2);

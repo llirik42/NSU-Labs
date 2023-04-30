@@ -9,6 +9,8 @@ import ru.nsu.kondrenko.model.context.ContextExceptionsDecorator;
 import ru.nsu.kondrenko.model.context.RAMContext;
 import ru.nsu.kondrenko.model.instructionsfactory.CachingInstructionsFactory;
 import ru.nsu.kondrenko.model.instructionsfactory.InstructionsFactory;
+import ru.nsu.kondrenko.model.instructionsfactory.InstructionsFlyweightFactory;
+import ru.nsu.kondrenko.model.instructionsfactory.InstructionsLoadingFactory;
 import ru.nsu.kondrenko.model.parsersfactory.DefaultParsersFactory;
 import ru.nsu.kondrenko.model.parsersfactory.ParsersFactory;
 import ru.nsu.kondrenko.model.Utilities;
@@ -31,7 +33,9 @@ public class Main {
 
         String inputPath = argumentParser.parseArgsOrFail(args).get("file");
 
-        InstructionsFactory factory = new CachingInstructionsFactory();
+        InstructionsFactory loadingFactory = new InstructionsLoadingFactory();
+        InstructionsFactory cachingFactory = new CachingInstructionsFactory(loadingFactory);
+        InstructionsFactory flyweightFactory = new InstructionsFlyweightFactory(cachingFactory);
 
         Context context = new RAMContext();
         Context contextDecorator = new ContextExceptionsDecorator(context);
@@ -39,7 +43,7 @@ public class Main {
         ParsersFactory parsersFactory = new DefaultParsersFactory();
 
         try (AbstractParser parser = parsersFactory.createParser(inputPath)) {
-            var calculator = new StackCalculator(parser, logger, contextDecorator, factory);
+            var calculator = new StackCalculator(parser, logger, contextDecorator, flyweightFactory);
             calculator.calculate();
         } catch (Exception exception) {
             Utilities.logException(logger, exception);
