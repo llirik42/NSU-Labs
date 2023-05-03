@@ -5,18 +5,20 @@ import ru.nsu.kondrenko.model.exceptions.ConfigException;
 import ru.nsu.kondrenko.model.exceptions.FileException;
 import ru.nsu.kondrenko.model.exceptions.InstructionException;
 import ru.nsu.kondrenko.model.instructions.Instruction;
+import ru.nsu.kondrenko.model.parsing.ParsedLine;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.util.*;
 
 public class InstructionsLoadingFactory implements InstructionsFactory {
-    private final Map<String, Constructor<?>> instructionsConstructors = new HashMap<>();
+    String CONFIG_NAME = "factory_config.txt";
+
+    private final Map<String, Constructor<?>> nonLoggingInstructionsConstructors = new HashMap<>();
+
+    private Constructor<Instruction> loggingInstructionConstructor;
 
     public InstructionsLoadingFactory() {
         try (InputStream configInputStream = InstructionsLoadingFactory.class.getClassLoader().getResourceAsStream(CONFIG_NAME)) {
@@ -44,13 +46,20 @@ public class InstructionsLoadingFactory implements InstructionsFactory {
     }
 
     @Override
-    public Instruction createInstruction(String instructionName) {
-        if (!instructionsConstructors.containsKey(instructionName)) {
-            throw new InstructionException("Unknown instruction");
-        }
+    public Instruction createInstruction(ParsedLine parsedLine) {
+        final String instructionName = parsedLine.getWords()[0];
 
         try {
-            return (Instruction) instructionsConstructors.get(instructionName).newInstance();
+            if (isLog(instructionName)) {
+                Instruction instructionToDecorate = createNonLoggingInstruction(parsedLine.getWords()[1]);
+                return createLogDecorator(instructionToDecorate);
+            }
+
+            if (!nonLoggingInstructionsConstructors.containsKey(instructionName)) {
+                throw new InstructionException("Unknown instruction");
+            }
+
+            return createNonLoggingInstruction(instructionName);
         } catch (InvocationTargetException exception) {
             throw new AbstractException(exception);
         } catch (InstantiationException | IllegalAccessException | ExceptionInInitializerError exception) {
@@ -59,18 +68,58 @@ public class InstructionsLoadingFactory implements InstructionsFactory {
         }
     }
 
+    @Override
+    public boolean isAdd(String instructionName) {
+        return instructionName.equals("+");
+    }
+
+    @Override
+    public boolean isMultiply(String instructionName) {
+        return instructionName.equals("*");
+    }
+
+    @Override
+    public boolean isSubtract(String instructionName) {
+        return instructionName.equals("-");
+    }
+
+    @Override
+    public boolean isDivide(String instructionName) {
+        return instructionName.equals("-");
+    }
+
+    @Override
+    public boolean isLog(String instructionName) {
+        return instructionName.equals("LOG");
+    }
+
+    private Instruction createNonLoggingInstruction(String instructionName) throws InvocationTargetException, InstantiationException, IllegalAccessException {
+        return (Instruction) nonLoggingInstructionsConstructors.get(instructionName).newInstance();
+    }
+
+    private Instruction createLogDecorator(Instruction instructionToLog) throws InvocationTargetException, InstantiationException, IllegalAccessException {
+        return loggingInstructionConstructor.newInstance(instructionToLog);
+    }
+
     private void readInstructions(InputStream inputStream) throws NoSuchElementException,
                                                                   IllegalStateException,
                                                                   LinkageError,
                                                                   ClassNotFoundException,
                                                                   SecurityException,
                                                                   NoSuchMethodException {
+        final Class<?>[] parametersOfConstructorOfLoggingInstruction = new Class<?>[]{Instruction.class};
+
         Scanner scanner = new Scanner(inputStream);
 
         while (scanner.hasNext()) {
             String instructionName = scanner.next();
             String instructionPath = scanner.next();
-            instructionsConstructors.put(instructionName, Class.forName(instructionPath).getConstructor());
+
+            if (isLog(instructionName)) {
+                loggingInstructionConstructor = (Constructor<Instruction>) Class.forName(instructionPath).getDeclaredConstructor(parametersOfConstructorOfLoggingInstruction);
+            } else {
+                nonLoggingInstructionsConstructors.put(instructionName, Class.forName(instructionPath).getConstructor());
+            }
         }
     }
 }

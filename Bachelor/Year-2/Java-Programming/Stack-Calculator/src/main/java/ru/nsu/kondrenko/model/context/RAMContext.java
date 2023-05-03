@@ -1,8 +1,6 @@
 package ru.nsu.kondrenko.model.context;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
+import java.util.*;
 
 public class RAMContext implements Context {
     private boolean exitFlag = false;
@@ -10,6 +8,17 @@ public class RAMContext implements Context {
     private final Stack<Double> stack = new Stack<>();
 
     private final Map<String, Double> variables = new HashMap<>();
+
+    @Override
+    public List<Double> getNumbersOnStack() {
+        List<Double> result = new ArrayList<>(stack);
+        return Collections.unmodifiableList(result);
+    }
+
+    @Override
+    public Map<String, Double> getVariables() {
+        return Collections.unmodifiableMap(variables);
+    }
 
     @Override
     public void pushValue(double value) {

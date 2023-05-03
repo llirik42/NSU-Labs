@@ -1,6 +1,13 @@
-package  ru.nsu.kondrenko.model.context;
+package ru.nsu.kondrenko.model.context;
+
+import java.util.List;
+import java.util.Map;
 
 public interface Context {
+    List<Double> getNumbersOnStack();
+
+    Map<String, Double> getVariables();
+
     void pushValue(double value);
 
     void pushVariable(String name);

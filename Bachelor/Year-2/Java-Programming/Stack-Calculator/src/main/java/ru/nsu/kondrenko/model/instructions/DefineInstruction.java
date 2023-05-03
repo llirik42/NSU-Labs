@@ -7,8 +7,8 @@ public class DefineInstruction implements Instruction {
     @Override
     public void execute(Context context, String[] operands) {
         try {
-            String nameOfVariable = operands[0];
-            double valueOfVariable = Double.parseDouble(operands[1]);
+            String nameOfVariable = operands[1];
+            double valueOfVariable = Double.parseDouble(operands[2]);
             context.defineVariable(nameOfVariable, valueOfVariable);
         } catch (NumberFormatException exception) {
             throw new InstructionException("Incorrect value of a new variable", exception);

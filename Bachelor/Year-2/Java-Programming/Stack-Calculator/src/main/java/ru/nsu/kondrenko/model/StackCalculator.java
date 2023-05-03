@@ -34,18 +34,20 @@ public class StackCalculator {
             try {
                 logger.info("Started reading line " + parsedLine.getLineNumber());
 
-                Instruction instruction = factory.createInstruction(parsedLine.getInstructionName());
+                Instruction instruction = factory.createInstruction(parsedLine);
 
                 if (context.getStackSize() < instruction.getNeededElementsCountOnStack()) {
                     throw new InstructionException("Not enough elements on the stack to execute the instruction");
                 }
-                if (parsedLine.getInstructionOperands().length != instruction.getNeededOperandsCount()) {
+
+                final int countOfOperands = parsedLine.getWords().length - 1; // One word is a name of instruction
+                if (countOfOperands != instruction.getNeededOperandsCount()) {
                     throw new InstructionException("Incorrect number of operands for the instruction");
                 }
 
                 logger.info("Started executing instruction");
 
-                instruction.execute(context, parsedLine.getInstructionOperands());
+                instruction.execute(context, parsedLine.getWords());
 
                 logger.info("Finished executing instruction");
             } catch (InstructionException exception) {

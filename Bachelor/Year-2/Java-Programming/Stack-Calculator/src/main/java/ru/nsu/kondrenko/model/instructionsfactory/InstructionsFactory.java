@@ -1,9 +1,18 @@
 package ru.nsu.kondrenko.model.instructionsfactory;
 
 import ru.nsu.kondrenko.model.instructions.Instruction;
+import ru.nsu.kondrenko.model.parsing.ParsedLine;
 
 public interface InstructionsFactory {
-    String CONFIG_NAME = "factory_config.txt";
+    Instruction createInstruction(ParsedLine parsedLine);
 
-    Instruction createInstruction(String instructionName);
+    boolean isAdd(String instructionName);
+
+    boolean isMultiply(String instructionName);
+
+    boolean isSubtract(String instructionName);
+
+    boolean isDivide(String instructionName);
+
+    boolean isLog(String instructionName);
 }

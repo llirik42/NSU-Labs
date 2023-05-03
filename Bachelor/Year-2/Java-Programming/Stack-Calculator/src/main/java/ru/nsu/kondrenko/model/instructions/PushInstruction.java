@@ -5,7 +5,7 @@ import ru.nsu.kondrenko.model.context.Context;
 public class PushInstruction implements Instruction {
     @Override
     public void execute(Context context, String[] operands) {
-        String valueToPush = operands[0];
+        String valueToPush = operands[1];
 
         try {
             context.pushValue(Double.parseDouble(valueToPush));

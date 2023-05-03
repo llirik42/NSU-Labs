@@ -1,6 +1,8 @@
 package ru.nsu.kondrenko.model.context;
 
 import java.util.EmptyStackException;
+import java.util.List;
+import java.util.Map;
 
 import ru.nsu.kondrenko.model.exceptions.InstructionException;
 
@@ -9,6 +11,16 @@ public class ContextExceptionsDecorator implements Context {
 
     public ContextExceptionsDecorator(Context context) {
         this.context = context;
+    }
+
+    @Override
+    public List<Double> getNumbersOnStack() {
+        return context.getNumbersOnStack();
+    }
+
+    @Override
+    public Map<String, Double> getVariables() {
+        return context.getVariables();
     }
 
     @Override
