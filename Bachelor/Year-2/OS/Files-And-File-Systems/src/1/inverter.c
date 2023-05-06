@@ -38,9 +38,7 @@ unsigned int get_effective_length(const char* string) {
  * to[to_start_index + i] = from[from_start_index + i];
  */
 void copy(const char* from, char* to, unsigned int from_start_index, unsigned int to_start_index, unsigned int count) {
-    for (unsigned int i = 0; i < count; i++) {
-        memcpy(to + to_start_index, from + from_start_index, count);
-    }
+    memcpy(to + to_start_index, from + from_start_index, count);
 }
 
 /*
