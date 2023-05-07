@@ -2,4 +2,4 @@
 
 * [Стэковый калькулятор](Stack-Calculator)
 * [MVC + GUI](Chess)
-* [Эмулятор работы фабрики][Factory-Emulator]
+* [Эмулятор работы фабрики](Factory-Emulator)
