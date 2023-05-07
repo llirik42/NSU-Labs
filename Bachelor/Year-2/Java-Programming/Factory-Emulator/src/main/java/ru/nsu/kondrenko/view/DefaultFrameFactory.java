@@ -19,7 +19,8 @@ public class DefaultFrameFactory implements AbstractFrameFactory {
 
     private static final Font LABELS_FONT = new Font(Font.SERIF, Font.PLAIN, 30);
     private static final Font TABLE_FONT = new Font(Font.SERIF, Font.PLAIN, 18);
-    private static final Font SLIDERS_FONT = new Font(Font.SERIF, Font.PLAIN, 20);
+    private static final Font SLIDER_TITLE_FONT = new Font(Font.SERIF, Font.PLAIN, 20);
+    private static final Font SLIDER_UNITS_FONT = new Font(Font.SERIF, Font.PLAIN, 12);
 
     private static final Dimension FRAME_DIMENSION = new Dimension(1500, 600);
 
@@ -31,6 +32,8 @@ public class DefaultFrameFactory implements AbstractFrameFactory {
     private static final int SLIDERS_STRUT = 60;
 
     private static final String DEFAULT_TABLE_VALUE = "0";
+
+    private static final int SLIDER_TICKS_COUNT = 3;
 
     private static final String[] SLIDER_TITLES = new String[]{
             "Body suppliers",
@@ -206,7 +209,7 @@ public class DefaultFrameFactory implements AbstractFrameFactory {
             tmp.setLayout(new GridLayout(2, 1));
 
             final JLabel jLabel = new JLabel(SLIDER_TITLES[i], SwingConstants.CENTER);
-            jLabel.setFont(SLIDERS_FONT);
+            jLabel.setFont(SLIDER_TITLE_FONT);
 
             tmp.add(jLabel, Component.RIGHT_ALIGNMENT);
             tmp.add(sliders[i]);
@@ -232,7 +235,7 @@ public class DefaultFrameFactory implements AbstractFrameFactory {
                                         int maxValue,
                                         int startValue) {
 
-        final int step = maxValue - minValue;
+        final int step = (maxValue - minValue) / SLIDER_TICKS_COUNT;
         slider.setMinimum(minValue);
         slider.setMaximum(maxValue);
         slider.setValue(startValue);
@@ -241,7 +244,7 @@ public class DefaultFrameFactory implements AbstractFrameFactory {
         slider.setPaintLabels(true);
         slider.setMajorTickSpacing(step);
         slider.setMinorTickSpacing(step);
-        slider.setFont(SLIDERS_FONT);
+        slider.setFont(SLIDER_UNITS_FONT);
         slider.addChangeListener(changeListener);
     }
 
