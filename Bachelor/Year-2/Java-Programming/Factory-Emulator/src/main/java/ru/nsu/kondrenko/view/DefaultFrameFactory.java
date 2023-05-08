@@ -35,11 +35,17 @@ public class DefaultFrameFactory implements AbstractFrameFactory {
 
     private static final int SLIDER_TICKS_COUNT = 3;
 
+    private static final String TOTAL_SECTION_TITLE = "Total";
+    private static final String STORED_SECTION_TITLE = "Stored";
+    private static final String WORKERS_COUNT_SECTION_TITLE = "Number";
+    private static final String WORK_TIME_SECTION_TITLE = "Work time (ms)";
+    private static final String SECTION_TITLE_OFFSET = "  ";
+
     private static final String[] SLIDER_TITLES = new String[]{
             "Body suppliers",
             "Engine suppliers",
             "Accessory suppliers",
-            "Workers",
+            "Factory workers",
             "Dealers"
     };
 
@@ -293,10 +299,10 @@ public class DefaultFrameFactory implements AbstractFrameFactory {
         ret.setResizable(false);
         ret.addWindowListener(windowListener);
 
-        final JLabel totalSectionLabel = createLabelWithSectionTitle("Total");
-        final JLabel storedSectionLabel = createLabelWithSectionTitle("Stored");
-        final JLabel threadNumberSectionLabel = createLabelWithSectionTitle("Number");
-        final JLabel productivitySectionLabel = createLabelWithSectionTitle("Productivity (ms)");
+        final JLabel totalSectionLabel = createLabelWithSectionTitle(SECTION_TITLE_OFFSET + TOTAL_SECTION_TITLE);
+        final JLabel storedSectionLabel = createLabelWithSectionTitle(SECTION_TITLE_OFFSET + STORED_SECTION_TITLE);
+        final JLabel threadNumberSectionLabel = createLabelWithSectionTitle(SECTION_TITLE_OFFSET + WORKERS_COUNT_SECTION_TITLE);
+        final JLabel productivitySectionLabel = createLabelWithSectionTitle(SECTION_TITLE_OFFSET + WORK_TIME_SECTION_TITLE);
 
         final JSlider[] threadsNumberSliders = createThreadNumberSliders(
                 config,
