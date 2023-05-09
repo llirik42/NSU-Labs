@@ -1,4 +1,4 @@
-package ru.nsu.kondrenko.model.work.threadpools;
+package ru.nsu.kondrenko.model.work.factory;
 
 import ru.nsu.kondrenko.model.listeners.CarAssembleListener;
 import ru.nsu.kondrenko.model.listeners.FactoryTasksListener;
@@ -7,7 +7,7 @@ import ru.nsu.kondrenko.model.products.Body;
 import ru.nsu.kondrenko.model.products.Car;
 import ru.nsu.kondrenko.model.products.Engine;
 import ru.nsu.kondrenko.model.storage.Storage;
-import ru.nsu.kondrenko.model.work.workers.FactoryWorker;
+import ru.nsu.kondrenko.model.work.WorkersThreadPool;
 
 public class Factory extends WorkersThreadPool<FactoryWorker> {
     private final Object synchronizationObject;

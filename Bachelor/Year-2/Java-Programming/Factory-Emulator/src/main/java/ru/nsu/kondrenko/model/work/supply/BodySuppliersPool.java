@@ -1,8 +1,7 @@
-package ru.nsu.kondrenko.model.work.threadpools;
+package ru.nsu.kondrenko.model.work.supply;
 
 import ru.nsu.kondrenko.model.products.Body;
 import ru.nsu.kondrenko.model.storage.Storage;
-import ru.nsu.kondrenko.model.work.workers.BodySupplier;
 
 public class BodySuppliersPool extends SuppliersThreadPool<Body> {
     public BodySuppliersPool(Storage<Body> storage, int suppliersCount, int supplyTime) {

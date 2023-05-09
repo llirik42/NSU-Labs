@@ -1,31 +1,26 @@
-package ru.nsu.kondrenko.model;
+package ru.nsu.kondrenko.model.work.factory;
 
-import ru.nsu.kondrenko.model.work.threadpools.Factory;
-
-public class FactoryPlanner extends Thread {
-    private static final int CARS_TO_SALE_PLAN = 100;
-
-    private final Factory factory;
-
-    private int tasksAssigned = 0;
+public abstract class FactoryPlanner extends Thread {
+    protected final Factory factory;
+    private final Object synchronizationObject = new Object();
 
     private boolean wasNotified = false;
 
-    public FactoryPlanner(Factory factory) {
+    protected FactoryPlanner(Factory factory) {
         this.factory = factory;
     }
 
+    @Override
     public void run() {
         while (true) {
             final int newTasksCount = getNewTasksCount();
-            tasksAssigned += newTasksCount;
             factory.addTasks(newTasksCount);
             wasNotified = false;
 
             while (!wasNotified) {
-                synchronized (this) {
+                synchronized (synchronizationObject) {
                     try {
-                        wait();
+                        synchronizationObject.wait();
                     } catch (InterruptedException exception) {
                         interrupt();
                         return;
@@ -35,11 +30,13 @@ public class FactoryPlanner extends Thread {
         }
     }
 
+    public Object getSynchronizationObject() {
+        return synchronizationObject;
+    }
+
     public void notifyAboutCarSale() {
         wasNotified = true;
     }
 
-    private int getNewTasksCount() {
-        return tasksAssigned < CARS_TO_SALE_PLAN ? 2 : 0;
-    }
+    protected abstract int getNewTasksCount();
 }

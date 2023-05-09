@@ -1,4 +1,4 @@
-package ru.nsu.kondrenko.model.work.workers;
+package ru.nsu.kondrenko.model.work.supply;
 
 import ru.nsu.kondrenko.model.products.Body;
 import ru.nsu.kondrenko.model.storage.Storage;

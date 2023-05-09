@@ -5,10 +5,12 @@ import ru.nsu.kondrenko.model.parsing.limits.Limits;
 
 import javax.swing.event.ChangeListener;
 import java.awt.event.WindowListener;
+import java.util.logging.Logger;
 
 public interface AbstractFrameFactory {
     Frame createMainFrame(Config config,
                           Limits limits,
+                          Logger logger,
                           ChangeListener bodySuppliersCountListener,
                           ChangeListener engineSuppliersCountListener,
                           ChangeListener accessorySuppliersCountListener,

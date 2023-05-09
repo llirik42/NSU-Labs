@@ -1,8 +1,9 @@
-package ru.nsu.kondrenko.model.work.workers;
+package ru.nsu.kondrenko.model.work.supply;
 
 import ru.nsu.kondrenko.model.listeners.SupplyListener;
 import ru.nsu.kondrenko.model.products.CarPart;
 import ru.nsu.kondrenko.model.storage.Storage;
+import ru.nsu.kondrenko.model.work.Worker;
 
 public abstract class Supplier<P extends CarPart> extends Worker {
     protected final Storage<P> storage;

@@ -1,4 +1,4 @@
-package ru.nsu.kondrenko.model.work.workers;
+package ru.nsu.kondrenko.model.work.factory;
 
 import ru.nsu.kondrenko.model.listeners.CarAssembleListener;
 import ru.nsu.kondrenko.model.listeners.FactoryTasksListener;
@@ -7,6 +7,7 @@ import ru.nsu.kondrenko.model.products.Body;
 import ru.nsu.kondrenko.model.products.Car;
 import ru.nsu.kondrenko.model.products.Engine;
 import ru.nsu.kondrenko.model.storage.Storage;
+import ru.nsu.kondrenko.model.work.Worker;
 
 public class FactoryWorker extends Worker {
     private static int tasksCount = 0;
@@ -39,6 +40,7 @@ public class FactoryWorker extends Worker {
         tasksCount += newTasks;
     }
 
+    @Override
     public void run() {
         while (true) {
             synchronized (synchronizationObject) {

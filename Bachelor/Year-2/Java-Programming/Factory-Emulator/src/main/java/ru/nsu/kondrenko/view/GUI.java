@@ -9,6 +9,7 @@ import ru.nsu.kondrenko.model.products.*;
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
 import java.awt.event.WindowListener;
+import java.util.logging.Logger;
 
 public class GUI implements
         View,
@@ -35,6 +36,7 @@ public class GUI implements
     public GUI(AbstractFrameFactory frameFactory,
                Config config,
                Limits limits,
+               Logger logger,
                ChangeListener bodySuppliersCountListener,
                ChangeListener engineSuppliersCountListener,
                ChangeListener accessorySuppliersCountListener,
@@ -50,6 +52,7 @@ public class GUI implements
         frame = frameFactory.createMainFrame(
                 config,
                 limits,
+                logger,
                 bodySuppliersCountListener,
                 engineSuppliersCountListener,
                 accessorySuppliersCountListener,

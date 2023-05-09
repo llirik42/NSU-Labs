@@ -1,6 +1,4 @@
-package ru.nsu.kondrenko.model.work.threadpools;
-
-import ru.nsu.kondrenko.model.work.workers.Worker;
+package ru.nsu.kondrenko.model.work;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +24,7 @@ public abstract class WorkersThreadPool<W extends Worker> {
 
     public void setWorkTime(int workTime) {
         this.workTime = workTime;
-        workers.forEach((worker) -> worker.setWorkTime(workTime));
+        workers.forEach(worker -> worker.setWorkTime(workTime));
     }
 
     public void setWorkersCount(int count) {

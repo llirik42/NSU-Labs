@@ -1,9 +1,10 @@
-package ru.nsu.kondrenko.model.work.workers;
+package ru.nsu.kondrenko.model.work.sale;
 
-import ru.nsu.kondrenko.model.FactoryPlanner;
 import ru.nsu.kondrenko.model.listeners.CarRequestListener;
 import ru.nsu.kondrenko.model.products.Car;
 import ru.nsu.kondrenko.model.storage.Storage;
+import ru.nsu.kondrenko.model.work.Worker;
+import ru.nsu.kondrenko.model.work.factory.FactoryPlanner;
 
 import java.util.logging.Logger;
 
@@ -11,6 +12,7 @@ public class Dealer extends Worker {
     private final Storage<Car> storage;
     private final FactoryPlanner factoryPlanner;
     private final Logger logger;
+    private final Object factoryPlannerSynchronizationObject;
     private CarRequestListener carRequestListener;
 
     public Dealer(int carRequestTime, FactoryPlanner factoryPlanner, Storage<Car> storage, Logger logger) {
@@ -18,23 +20,26 @@ public class Dealer extends Worker {
         this.factoryPlanner = factoryPlanner;
         this.storage = storage;
         this.logger = logger;
+        this.factoryPlannerSynchronizationObject = factoryPlanner.getSynchronizationObject();
     }
 
     @Override
     public void run() {
         while (!softlyInterrupted) {
             try {
-                Thread.sleep(workTime);
                 final Car car = storage.take();
                 carRequestListener.notifyAboutCarSale();
 
                 if (logger != null) {
-                    logger.info(String.format("Dealer %s: %s%n", Thread.currentThread().getName(), car));
+                    final String message = String.format("Dealer %s: %s%n", Thread.currentThread().getName(), car);
+                    logger.info(message);
                 }
 
-                synchronized (factoryPlanner) {
+                Thread.sleep(workTime);
+
+                synchronized (factoryPlannerSynchronizationObject) {
                     factoryPlanner.notifyAboutCarSale();
-                    factoryPlanner.notify();
+                    factoryPlannerSynchronizationObject.notifyAll();
                 }
             } catch (InterruptedException exception) {
                 interrupt();

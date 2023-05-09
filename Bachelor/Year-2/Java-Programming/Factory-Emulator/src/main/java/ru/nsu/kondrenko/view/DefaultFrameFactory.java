@@ -13,6 +13,7 @@ import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.logging.Logger;
 
 public class DefaultFrameFactory implements AbstractFrameFactory {
     private static final String ICON_NAME = "default_icon.png";
@@ -262,20 +263,25 @@ public class DefaultFrameFactory implements AbstractFrameFactory {
         return ret;
     }
 
-    private static void loadApplicationIcon(JFrame frame) {
+    private static void loadApplicationIcon(JFrame frame, Logger logger) {
         try (InputStream inputStream = Main.class.getClassLoader().getResourceAsStream(ICON_NAME)) {
-            if (inputStream != null) {
-                final BufferedImage bufferedImage = ImageIO.read(inputStream);
-                final Image image = Toolkit.getDefaultToolkit().createImage(bufferedImage.getSource());
-                frame.setIconImage(image);
+            if (inputStream == null) {
+                logger.warning("Icon not found");
+                return;
             }
-        } catch (IOException ignored) {
+
+            final BufferedImage bufferedImage = ImageIO.read(inputStream);
+            final Image image = Toolkit.getDefaultToolkit().createImage(bufferedImage.getSource());
+            frame.setIconImage(image);
+        } catch (IOException exception) {
+            logger.warning("Couldn't read an icon");
         }
     }
 
     @Override
     public Frame createMainFrame(Config config,
                                  Limits limits,
+                                 Logger logger,
                                  ChangeListener bodySuppliersCountListener,
                                  ChangeListener engineSuppliersCountListener,
                                  ChangeListener accessorySuppliersCountListener,
@@ -334,7 +340,7 @@ public class DefaultFrameFactory implements AbstractFrameFactory {
         ret.add(productivitySection);
         ret.add(threadsNumberSection);
 
-        loadApplicationIcon(ret);
+        loadApplicationIcon(ret, logger);
 
         return ret;
     }

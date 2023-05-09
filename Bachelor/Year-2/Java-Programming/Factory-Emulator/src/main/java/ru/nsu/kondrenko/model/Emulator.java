@@ -7,7 +7,13 @@ import ru.nsu.kondrenko.model.products.Body;
 import ru.nsu.kondrenko.model.products.Car;
 import ru.nsu.kondrenko.model.products.Engine;
 import ru.nsu.kondrenko.model.storage.ProductStorage;
-import ru.nsu.kondrenko.model.work.threadpools.*;
+import ru.nsu.kondrenko.model.work.factory.Factory;
+import ru.nsu.kondrenko.model.work.factory.FactoryPlanner;
+import ru.nsu.kondrenko.model.work.factory.MaxFactoryPlanner;
+import ru.nsu.kondrenko.model.work.sale.DealersPool;
+import ru.nsu.kondrenko.model.work.supply.AccessorySuppliersPool;
+import ru.nsu.kondrenko.model.work.supply.BodySuppliersPool;
+import ru.nsu.kondrenko.model.work.supply.EngineSuppliersPool;
 
 import java.util.logging.Logger;
 
@@ -57,7 +63,7 @@ public class Emulator {
                 config.workersCount()
         );
 
-        this.factoryPlanner = new FactoryPlanner(factory);
+        this.factoryPlanner = new MaxFactoryPlanner(factory);
 
         this.dealersPool = new DealersPool(
                 carStorage,

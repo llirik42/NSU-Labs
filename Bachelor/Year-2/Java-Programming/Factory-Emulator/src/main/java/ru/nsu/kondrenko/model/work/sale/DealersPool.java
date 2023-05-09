@@ -1,10 +1,10 @@
-package ru.nsu.kondrenko.model.work.threadpools;
+package ru.nsu.kondrenko.model.work.sale;
 
-import ru.nsu.kondrenko.model.FactoryPlanner;
 import ru.nsu.kondrenko.model.listeners.CarRequestListener;
 import ru.nsu.kondrenko.model.products.Car;
 import ru.nsu.kondrenko.model.storage.Storage;
-import ru.nsu.kondrenko.model.work.workers.Dealer;
+import ru.nsu.kondrenko.model.work.WorkersThreadPool;
+import ru.nsu.kondrenko.model.work.factory.FactoryPlanner;
 
 import java.util.logging.Logger;
 
