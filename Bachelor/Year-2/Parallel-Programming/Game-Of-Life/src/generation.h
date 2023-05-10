@@ -6,7 +6,8 @@
 #include <stdbool.h>
 #include <string.h>
 
-typedef u_int8_t Cell;
+typedef u_int8_t BitValue;
+typedef BitValue Cell;
 
 #define GET_CELL(G, W, Y, X) ((G)[(Y) * (W) + (X)])
 #define SET_CELL(G, W, Y, X, V) ((G)[(Y) * (W) + (X)] = (V))
@@ -32,8 +33,8 @@ void write_generation(const Cell* generation, unsigned long height, unsigned lon
  * Return value — whether cell will be alive or not.
  */
 bool evolve(const Cell* old_generation,
-            Cell* new_generation,
-            unsigned long width,
-            unsigned long alive_neighbours_count,
-            unsigned long y,
-            unsigned long x);
+                Cell* new_generation,
+                unsigned long width,
+                unsigned long alive_neighbours_count,
+                unsigned long y,
+                unsigned long x);

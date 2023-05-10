@@ -30,11 +30,11 @@ void write_generation(const Cell* generation, unsigned long height, unsigned lon
 }
 
 bool evolve(const Cell* old_generation,
-            Cell* new_generation,
-            unsigned long width,
-            unsigned long alive_neighbours_count,
-            unsigned long y,
-            unsigned long x) {
+                Cell* new_generation,
+                unsigned long width,
+                unsigned long alive_neighbours_count,
+                unsigned long y,
+                unsigned long x) {
 
     const bool is_alive = GET_CELL(old_generation, width, y, x);
     const bool will_be_alive = EVOLVE_CELL(is_alive, alive_neighbours_count);

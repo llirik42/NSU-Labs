@@ -6,6 +6,7 @@
 
 #define ROOT_RANK 0
 #define START_CAPACITY 1
+#define MAX_ITERATIONS_COUNT 10000
 
 #ifdef DEBUG
 void print_time(const char* name, double time_s) {
@@ -140,7 +141,7 @@ void evolve_cells_in_bottom_row(const Cell* current_generation,
     }
 }
 
-bool check_repeat(const bool* reduced_stop_vector, size_t current_iteration) {
+bool check_repeat(const BitValue* reduced_stop_vector, size_t current_iteration) {
     for (size_t j = 0; j < current_iteration; j++) {
         if (reduced_stop_vector[j]) {
             return true;
@@ -182,12 +183,11 @@ int main(int argc, char** argv) {
     size_t capacity = START_CAPACITY;
     Cell** generations_history = calloc(capacity, sizeof(Cell*));
     unsigned long* alive_cells_history = calloc(capacity, sizeof(unsigned long));
-    bool* local_stop_vector = calloc(capacity, sizeof(bool));
-    bool* reduced_stop_vector = calloc(capacity, sizeof(bool));
+    BitValue* local_stop_vector = calloc(capacity, sizeof(BitValue));
+    BitValue* reduced_stop_vector = calloc(capacity, sizeof(BitValue));
     Cell* bottom_neighbour_upper_row = calloc(width, sizeof(Cell));
     Cell* upper_neighbour_bottom_row = calloc(width, sizeof(Cell));
 
-    size_t current_iteration = 0;
     MPI_Request send_upper_row_req;
     MPI_Request send_bottom_row_req;
     MPI_Request recv_bottom_neighbour_upper_row_req;
@@ -202,7 +202,8 @@ int main(int argc, char** argv) {
     double waiting_time_3 = 0;
     #endif
 
-    while (true) {
+    size_t current_iteration = 0;
+    while (current_iteration < MAX_ITERATIONS_COUNT) {
         // Initiate receiving upper-neighbour's bottom row
         MPI_Irecv(upper_neighbour_bottom_row,
                   (int)width,
@@ -254,7 +255,7 @@ int main(int argc, char** argv) {
         MPI_Iallreduce(local_stop_vector,
                        reduced_stop_vector,
                        (int)current_iteration,
-                       MPI_C_BOOL,
+                       MPI_UINT8_T,
                        MPI_LAND,
                        MPI_COMM_WORLD,
                        &reducing_stop_vectors_req);
@@ -381,8 +382,8 @@ int main(int argc, char** argv) {
         if (capacity == current_iteration) {
             capacity *= 2;
             generations_history = reallocarray(generations_history, capacity, sizeof(Cell*));
-            local_stop_vector = reallocarray(local_stop_vector, capacity, sizeof(bool));
-            reduced_stop_vector = reallocarray(reduced_stop_vector, capacity, sizeof(bool));
+            local_stop_vector = reallocarray(local_stop_vector, capacity, sizeof(BitValue));
+            reduced_stop_vector = reallocarray(reduced_stop_vector, capacity, sizeof(BitValue));
             alive_cells_history = reallocarray(alive_cells_history, capacity, sizeof(unsigned long));
         }
         generations_history[current_iteration] = current_generation;
@@ -429,6 +430,7 @@ int main(int argc, char** argv) {
     const double end_time = MPI_Wtime();
 
     if (rank == ROOT_RANK) {
+        printf("%-40s %d\n", "Exceeded max iterations count", current_iteration == MAX_ITERATIONS_COUNT);
         printf("%-40s %zu\n", "Iterations", current_iteration);
         print_time("Evolving", evolving_time);
         print_time("Waiting 1", waiting_time_1);
