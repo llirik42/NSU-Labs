@@ -4,3 +4,4 @@
 * [СЛАУ + MPI](SLAE+MPI)
 * [СЛАУ + OpenMP](SLAE+OpenMP)
 * [Умножение матриц](Matrices-Multiplication)
+* [Игра "Жизнь"](Game-Of-Life)
