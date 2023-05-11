@@ -430,7 +430,7 @@ int main(int argc, char** argv) {
     const double end_time = MPI_Wtime();
 
     if (rank == ROOT_RANK) {
-        printf("%-40s %d\n", "Exceeded max iterations count", current_iteration == MAX_ITERATIONS_COUNT);
+        printf("%-40s %d\n", "Reached max iterations count", current_iteration == MAX_ITERATIONS_COUNT);
         printf("%-40s %zu\n", "Iterations", current_iteration);
         print_time("Evolving", evolving_time);
         print_time("Waiting 1", waiting_time_1);
