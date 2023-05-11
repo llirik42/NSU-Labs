@@ -8,6 +8,8 @@
 #define START_CAPACITY 1
 #define MAX_ITERATIONS_COUNT 10000
 
+#define DEBUG
+
 #ifdef DEBUG
 void print_time(const char* name, double time_s) {
     printf("%-40s %-8.0f ms\n", name, time_s * 1000);
@@ -172,6 +174,7 @@ int main(int argc, char** argv) {
     const unsigned long local_height = k2 - k1;
 
     Cell* current_generation = CREATE_GENERATION(local_height, width);
+    Cell* next_generation = NULL;
 
     FILE* in = fopen(in_name, "r");
     fseek(in, (long) (k1 * (width + 1)), SEEK_SET);
@@ -251,6 +254,10 @@ int main(int argc, char** argv) {
                                    : EQUAL(current_generation, generations_history[j], local_height, width);
         }
 
+        #ifdef DEBUG
+        const double t2 = MPI_Wtime();
+        #endif
+
         // Initiate sending and "land"-ing stop-vector-flags from all to all
         MPI_Iallreduce(local_stop_vector,
                        reduced_stop_vector,
@@ -260,11 +267,7 @@ int main(int argc, char** argv) {
                        MPI_COMM_WORLD,
                        &reducing_stop_vectors_req);
 
-        #ifdef DEBUG
-        const double t2 = MPI_Wtime();
-        #endif
-
-        Cell* next_generation = CREATE_GENERATION(local_height, width);
+        next_generation = CREATE_GENERATION(local_height, width);
 
         unsigned long alive_cells_in_next_generation = 0;
 
@@ -418,17 +421,17 @@ int main(int argc, char** argv) {
         free(generations_history[i]);
     }
     free(generations_history);
+    free(alive_cells_history);
     free(current_generation);
-    fclose(in);
+    free(next_generation);
     free(upper_neighbour_bottom_row);
     free(bottom_neighbour_upper_row);
     free(reduced_stop_vector);
     free(local_stop_vector);
-    free(alive_cells_history);
+    fclose(in);
 
     #ifdef DEBUG
     const double end_time = MPI_Wtime();
-
     if (rank == ROOT_RANK) {
         printf("%-40s %d\n", "Reached max iterations count", current_iteration == MAX_ITERATIONS_COUNT);
         printf("%-40s %zu\n", "Iterations", current_iteration);
