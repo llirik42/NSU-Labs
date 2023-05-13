@@ -15,5 +15,15 @@ gcc server.c -o server
 ```
 
 ```Bash
-./client
+./client # Client 1
 ```
+
+```Bash
+./client # Client 2
+```
+
+```Bash
+./client # Client 3
+```
+
+...
