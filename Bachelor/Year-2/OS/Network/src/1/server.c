@@ -1,11 +1,11 @@
 #include <stdio.h>
-#include "config.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include "config.h"
 
 int main() {
     const int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -15,11 +15,11 @@ int main() {
         return ERROR_CODE;
     }
 
-    struct sockaddr_in server_sockaddr;
-    memset(&server_sockaddr, 0, sizeof(server_sockaddr));
-    server_sockaddr.sin_family = AF_INET;
-    server_sockaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    server_sockaddr.sin_port = htons(PORT);
+    const struct sockaddr_in server_sockaddr = {
+            .sin_family = AF_INET,
+            .sin_addr.s_addr = htonl(INADDR_ANY),
+            .sin_port = htons(PORT)
+    };
 
     if (bind(sock, (const struct sockaddr*) &server_sockaddr, sizeof(server_sockaddr)) == -1) {
         perror("bind() failed");

@@ -1,11 +1,11 @@
 #include <stdio.h>
-#include "config.h"
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
+#include "config.h"
 
 void print_enter_message() {
     printf("Enter your message: ");
