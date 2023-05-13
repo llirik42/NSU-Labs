@@ -6,7 +6,7 @@
 #include "my_heap.h"
 #include "chunk.h"
 
-#define PAGES_IN_MY_HEAP 10
+#define PAGES_IN_MY_HEAP 1
 
 #define MIN(A, B) ((A) > (B) ? (B) : (A))
 
