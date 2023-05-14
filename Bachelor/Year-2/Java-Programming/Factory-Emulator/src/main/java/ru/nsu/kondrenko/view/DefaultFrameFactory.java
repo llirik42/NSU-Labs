@@ -42,6 +42,8 @@ public class DefaultFrameFactory implements AbstractFrameFactory {
     private static final String WORK_TIME_SECTION_TITLE = "Work time (ms)";
     private static final String SECTION_TITLE_OFFSET = "  ";
 
+    private static final String FRAME_TITLE = "FactoryEmulator";
+
     private static final String[] SLIDER_TITLES = new String[]{
             "Body suppliers",
             "Engine suppliers",
@@ -341,6 +343,7 @@ public class DefaultFrameFactory implements AbstractFrameFactory {
         ret.add(threadsNumberSection);
 
         loadApplicationIcon(ret, logger);
+        ret.setTitle(FRAME_TITLE);
 
         return ret;
     }
