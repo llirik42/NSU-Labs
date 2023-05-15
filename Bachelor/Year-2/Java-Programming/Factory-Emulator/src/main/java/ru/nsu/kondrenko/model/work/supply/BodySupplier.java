@@ -1,15 +1,16 @@
 package ru.nsu.kondrenko.model.work.supply;
 
+import ru.nsu.kondrenko.model.listeners.SupplyListener;
 import ru.nsu.kondrenko.model.products.Body;
 import ru.nsu.kondrenko.model.storage.Storage;
 
 public class BodySupplier extends Supplier<Body> {
-    public BodySupplier(Storage<Body> storage, int supplyTime) {
-        super(supplyTime, storage);
+    public BodySupplier(Storage<Body> storage, SupplyListener supplyListener, int workTime) {
+        super(storage, supplyListener, workTime);
     }
 
     @Override
-    protected Body supplyCarPart() {
+    public Body supply() {
         return new Body();
     }
 }

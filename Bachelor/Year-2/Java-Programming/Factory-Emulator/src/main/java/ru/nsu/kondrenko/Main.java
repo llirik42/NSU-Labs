@@ -7,6 +7,7 @@ import ru.nsu.kondrenko.model.parsing.PropertiesException;
 import ru.nsu.kondrenko.model.parsing.PropertiesReader;
 import ru.nsu.kondrenko.model.parsing.config.*;
 import ru.nsu.kondrenko.model.parsing.limits.*;
+import ru.nsu.kondrenko.view.AbstractFrameFactory;
 import ru.nsu.kondrenko.view.DefaultFrameFactory;
 import ru.nsu.kondrenko.view.GUI;
 
@@ -58,22 +59,21 @@ public class Main {
                 dealersLogger = readLoggingConfigurationFile(errorsLogger) ? Logger.getAnonymousLogger() : null;
             }
 
-            final Emulator emulator = new Emulator(config, dealersLogger);
+            final BodySuppliersController bodySuppliersController = new BodySuppliersController();
+            final EngineSuppliersController engineSuppliersController = new EngineSuppliersController();
+            final AccessorySuppliersController accessorySuppliersController = new AccessorySuppliersController();
+            final WorkersController workersController = new WorkersController();
+            final DealersController dealersController = new DealersController();
+            final BodySupplyTimeController bodySupplyTimeController = new BodySupplyTimeController();
+            final EngineSupplyTmeController engineSupplyTmeController = new EngineSupplyTmeController();
+            final AccessorySupplyTimeController accessorySupplyTimeController = new AccessorySupplyTimeController();
+            final CarAssemblingTimeController carAssemblingTimeController = new CarAssemblingTimeController();
+            final CarRequestTimeController carRequestTimeController = new CarRequestTimeController();
+            final WindowClosingController windowClosingController = new WindowClosingController(errorsLogger);
 
-            final BodySuppliersController bodySuppliersController = new BodySuppliersController(emulator);
-            final EngineSuppliersController engineSuppliersController = new EngineSuppliersController(emulator);
-            final AccessorySuppliersController accessorySuppliersController = new AccessorySuppliersController(emulator);
-            final WorkersController workersController = new WorkersController(emulator);
-            final DealersController dealersController = new DealersController(emulator);
-            final BodySupplyTimeController bodySupplyTimeController = new BodySupplyTimeController(emulator);
-            final EngineSupplyTmeController engineSupplyTmeController = new EngineSupplyTmeController(emulator);
-            final AccessorySupplyTimeController accessorySupplyTimeController = new AccessorySupplyTimeController(emulator);
-            final CarAssemblingTimeController carAssemblingTimeController = new CarAssemblingTimeController(emulator);
-            final CarRequestTimeController carRequestTimeController = new CarRequestTimeController(emulator);
-            final WindowClosingController windowClosingController = new WindowClosingController(emulator, errorsLogger);
-
+            final AbstractFrameFactory frameFactory = new DefaultFrameFactory();
             final GUI gui = new GUI(
-                    new DefaultFrameFactory(),
+                    frameFactory,
                     config,
                     limits,
                     errorsLogger,
@@ -90,12 +90,19 @@ public class Main {
                     windowClosingController
             );
 
-            emulator.setView(gui);
-            emulator.setSupplyListener(gui);
-            emulator.setCarAssembleListener(gui);
-            emulator.setCarRequestListener(gui);
-            emulator.setStorageListener(gui);
-            emulator.setFactoryTasksListener(gui);
+            final Emulator emulator = new Emulator(config, dealersLogger, gui, gui, gui, gui, gui, gui);
+
+            bodySuppliersController.setEmulator(emulator);
+            engineSuppliersController.setEmulator(emulator);
+            accessorySuppliersController.setEmulator(emulator);
+            workersController.setEmulator(emulator);
+            dealersController.setEmulator(emulator);
+            bodySupplyTimeController.setEmulator(emulator);
+            engineSupplyTmeController.setEmulator(emulator);
+            accessorySupplyTimeController.setEmulator(emulator);
+            carAssemblingTimeController.setEmulator(emulator);
+            carRequestTimeController.setEmulator(emulator);
+            windowClosingController.setEmulator(emulator);
 
             emulator.start();
         } catch (PropertiesException propertiesException) {

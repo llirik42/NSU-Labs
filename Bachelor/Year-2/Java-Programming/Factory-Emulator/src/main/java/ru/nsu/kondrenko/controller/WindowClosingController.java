@@ -7,13 +7,15 @@ import java.awt.event.WindowEvent;
 import java.util.logging.Logger;
 
 public class WindowClosingController extends WindowAdapter {
-    private final Emulator emulator;
-
     private final Logger logger;
+    private Emulator emulator;
 
-    public WindowClosingController(Emulator emulator, Logger logger) {
+    public WindowClosingController(Logger errorsLogger) {
+        this.logger = errorsLogger;
+    }
+
+    public void setEmulator(Emulator emulator) {
         this.emulator = emulator;
-        this.logger = logger;
     }
 
     @Override

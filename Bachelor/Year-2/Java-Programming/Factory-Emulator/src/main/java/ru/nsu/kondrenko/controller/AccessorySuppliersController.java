@@ -6,9 +6,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 public class AccessorySuppliersController implements ChangeListener {
-    private final Emulator emulator;
+    private Emulator emulator;
 
-    public AccessorySuppliersController(Emulator emulator) {
+    public void setEmulator(Emulator emulator) {
         this.emulator = emulator;
     }
 

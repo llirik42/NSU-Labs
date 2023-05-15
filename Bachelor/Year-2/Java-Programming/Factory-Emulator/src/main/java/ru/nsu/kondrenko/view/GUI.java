@@ -159,7 +159,7 @@ public class GUI implements
     }
 
     @Override
-    public synchronized void notifyAboutClosingTask() {
+    public synchronized void notifyAboutCompletedTask() {
         tasksCount--;
         updateTasksCount();
     }

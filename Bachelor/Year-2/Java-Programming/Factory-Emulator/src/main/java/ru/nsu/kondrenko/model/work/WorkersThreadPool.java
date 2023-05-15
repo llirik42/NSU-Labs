@@ -1,16 +1,22 @@
 package ru.nsu.kondrenko.model.work;
 
+import ru.nsu.kondrenko.model.work.factory.Worker;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class WorkersThreadPool<W extends Worker> {
-    protected final List<W> workers = new ArrayList<>();
+public class WorkersThreadPool<W extends Worker> {
+    private final List<W> workers;
+    private final List<W> softlyInterruptedWorkers;
+    private final WorkersCreator<W> creator;
+    private boolean started = false;
 
-    protected final List<W> softlyInterruptedWorkers = new ArrayList<>();
-
-    protected int workTime;
-
-    protected boolean started = false;
+    public WorkersThreadPool(WorkersCreator<W> creator, int workersCount) {
+        this.workers = new ArrayList<>();
+        this.softlyInterruptedWorkers = new ArrayList<>();
+        this.creator = creator;
+        addWorkers(workersCount);
+    }
 
     public void start() {
         started = true;
@@ -23,7 +29,7 @@ public abstract class WorkersThreadPool<W extends Worker> {
     }
 
     public void setWorkTime(int workTime) {
-        this.workTime = workTime;
+        creator.setWorkTime(workTime);
         workers.forEach(worker -> worker.setWorkTime(workTime));
     }
 
@@ -39,7 +45,7 @@ public abstract class WorkersThreadPool<W extends Worker> {
         }
     }
 
-    protected void softlyInterruptSomeWorkers(int count) {
+    private void softlyInterruptSomeWorkers(int count) {
         for (int i = 0; i < count; i++) {
             final int indexOfLast = workers.size() - 1;
             final W workerToSoftlyInterrupt = workers.get(indexOfLast);
@@ -49,5 +55,14 @@ public abstract class WorkersThreadPool<W extends Worker> {
         }
     }
 
-    protected abstract void addWorkers(int count);
+    private void addWorkers(int count) {
+        for (int i = 0; i < count; i++) {
+            final W supplier = creator.createWorker();
+            workers.add(supplier);
+
+            if (started) {
+                supplier.start();
+            }
+        }
+    }
 }

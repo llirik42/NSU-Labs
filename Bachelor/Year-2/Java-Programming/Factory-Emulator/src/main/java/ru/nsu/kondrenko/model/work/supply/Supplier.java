@@ -3,25 +3,24 @@ package ru.nsu.kondrenko.model.work.supply;
 import ru.nsu.kondrenko.model.listeners.SupplyListener;
 import ru.nsu.kondrenko.model.products.CarPart;
 import ru.nsu.kondrenko.model.storage.Storage;
-import ru.nsu.kondrenko.model.work.Worker;
+import ru.nsu.kondrenko.model.work.factory.Worker;
 
 public abstract class Supplier<P extends CarPart> extends Worker {
-    protected final Storage<P> storage;
+    private final Storage<P> storage;
+    private final SupplyListener supplyListener;
 
-    protected SupplyListener supplyListener;
-
-    protected Supplier(int supplyTime, Storage<P> storage) {
-        super(supplyTime);
+    protected Supplier(Storage<P> storage, SupplyListener supplyListener, int workTime) {
+        super(workTime);
         this.storage = storage;
-        this.workTime = supplyTime;
+        this.supplyListener = supplyListener;
     }
 
     @Override
     public void run() {
-        while (!softlyInterrupted) {
+        while (!isSoftlyInterrupted()) {
             try {
-                Thread.sleep(workTime);
-                final P carPart = supplyCarPart();
+                Thread.sleep(getWorkTime());
+                final P carPart = supply();
                 storage.put(carPart);
                 supplyListener.notifyAboutSupply(carPart);
             } catch (InterruptedException exception) {
@@ -33,9 +32,5 @@ public abstract class Supplier<P extends CarPart> extends Worker {
         interrupt();
     }
 
-    public void setSupplyListener(SupplyListener supplyListener) {
-        this.supplyListener = supplyListener;
-    }
-
-    protected abstract P supplyCarPart();
+    protected abstract P supply();
 }

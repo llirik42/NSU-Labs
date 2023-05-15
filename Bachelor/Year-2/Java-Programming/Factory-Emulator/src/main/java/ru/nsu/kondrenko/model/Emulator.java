@@ -7,100 +7,100 @@ import ru.nsu.kondrenko.model.products.Body;
 import ru.nsu.kondrenko.model.products.Car;
 import ru.nsu.kondrenko.model.products.Engine;
 import ru.nsu.kondrenko.model.storage.ProductStorage;
+import ru.nsu.kondrenko.model.work.WorkersThreadPool;
+import ru.nsu.kondrenko.model.work.carsale.Dealer;
+import ru.nsu.kondrenko.model.work.carsale.DealersCreator;
 import ru.nsu.kondrenko.model.work.factory.Factory;
 import ru.nsu.kondrenko.model.work.factory.FactoryPlanner;
+import ru.nsu.kondrenko.model.work.factory.FactoryWorkersCreator;
 import ru.nsu.kondrenko.model.work.factory.MaxFactoryPlanner;
-import ru.nsu.kondrenko.model.work.sale.DealersPool;
-import ru.nsu.kondrenko.model.work.supply.AccessorySuppliersPool;
-import ru.nsu.kondrenko.model.work.supply.BodySuppliersPool;
-import ru.nsu.kondrenko.model.work.supply.EngineSuppliersPool;
+import ru.nsu.kondrenko.model.work.supply.*;
 
 import java.util.logging.Logger;
 
 public class Emulator {
-    private final ProductStorage<Body> bodyStorage;
-    private final ProductStorage<Engine> engineStorage;
-    private final ProductStorage<Accessory> accessoryStorage;
-    private final ProductStorage<Car> carStorage;
-    private final BodySuppliersPool bodySuppliersPool;
-    private final EngineSuppliersPool engineSuppliersPool;
-    private final AccessorySuppliersPool accessorySuppliersPool;
+    private final WorkersThreadPool<BodySupplier> bodySuppliersPool;
+    private final WorkersThreadPool<EngineSupplier> engineSuppliersPool;
+    private final WorkersThreadPool<AccessorySupplier> accessorySuppliersPool;
     private final Factory factory;
-    private final DealersPool dealersPool;
+    private final WorkersThreadPool<Dealer> dealersPool;
     private final FactoryPlanner factoryPlanner;
-    private View view;
+    private final View view;
 
-    public Emulator(Config config, Logger logger) {
-        this.bodyStorage = new ProductStorage<>(config.bodyStorageCapacity());
-        this.engineStorage = new ProductStorage<>(config.engineStorageCapacity());
-        this.accessoryStorage = new ProductStorage<>(config.accessoryStorageCapacity());
-        this.carStorage = new ProductStorage<>(config.carStorageCapacity());
+    public Emulator(Config config,
+                    Logger logger,
+                    View view,
+                    SupplyListener supplyListener,
+                    CarAssembleListener carAssembleListener,
+                    CarRequestListener carRequestListener,
+                    StorageListener storageListener,
+                    FactoryTasksListener factoryTasksListener) {
 
-        this.bodySuppliersPool = new BodySuppliersPool(
+        this.view = view;
+        final ProductStorage<Body> bodyStorage = new ProductStorage<>(config.bodyStorageCapacity(), storageListener);
+        final ProductStorage<Engine> engineStorage = new ProductStorage<>(config.engineStorageCapacity(), storageListener);
+        final ProductStorage<Accessory> accessoryStorage = new ProductStorage<>(config.accessoryStorageCapacity(), storageListener);
+        final ProductStorage<Car> carStorage = new ProductStorage<>(config.carStorageCapacity(), storageListener);
+
+        final BodySuppliersCreator bodySuppliersCreator = new BodySuppliersCreator(
                 bodyStorage,
-                config.bodySuppliersCount(),
+                supplyListener,
                 config.bodySupplyTimeMs()
         );
-
-        this.engineSuppliersPool = new EngineSuppliersPool(
+        final EngineSuppliersCreator engineSuppliersCreator = new EngineSuppliersCreator(
                 engineStorage,
-                config.engineSuppliersCount(),
+                supplyListener,
                 config.engineSupplyTimeMs()
-        );
 
-        this.accessorySuppliersPool = new AccessorySuppliersPool(
+        );
+        final AccessorySuppliersCreator accessorySuppliersCreator = new AccessorySuppliersCreator(
                 accessoryStorage,
-                config.accessorySuppliersCount(),
+                supplyListener,
                 config.accessorySupplyTimeMs()
         );
 
-        this.factory = new Factory(
+        this.bodySuppliersPool = new WorkersThreadPool<>(
+                bodySuppliersCreator,
+                config.bodySuppliersCount()
+        );
+        this.engineSuppliersPool = new WorkersThreadPool<>(
+                engineSuppliersCreator,
+                config.engineSuppliersCount()
+        );
+        this.accessorySuppliersPool = new WorkersThreadPool<>(
+                accessorySuppliersCreator,
+                config.accessorySuppliersCount()
+        );
+
+        final FactoryWorkersCreator factoryWorkerWorkersCreator = new FactoryWorkersCreator(
                 bodyStorage,
                 engineStorage,
                 accessoryStorage,
                 carStorage,
-                config.carAssemblingTimeMs(),
-                config.workersCount()
+                carAssembleListener,
+                factoryTasksListener,
+                config.carAssemblingTimeMs()
+        );
+
+        this.factory = new Factory(
+                factoryWorkerWorkersCreator,
+                factoryTasksListener, config.workersCount()
         );
 
         this.factoryPlanner = new MaxFactoryPlanner(factory);
 
-        this.dealersPool = new DealersPool(
+        final DealersCreator dealersCreator = new DealersCreator(
                 carStorage,
-                config.dealersCount(),
-                config.carRequestTimeMs(),
+                carRequestListener,
                 factoryPlanner,
-                logger
+                logger,
+                config.carRequestTimeMs()
         );
-    }
 
-    public void setView(View view) {
-        this.view = view;
-    }
-
-    public void setSupplyListener(SupplyListener supplyListener) {
-        bodySuppliersPool.setSupplyListener(supplyListener);
-        engineSuppliersPool.setSupplyListener(supplyListener);
-        accessorySuppliersPool.setSupplyListener(supplyListener);
-    }
-
-    public void setCarAssembleListener(CarAssembleListener carAssembleListener) {
-        factory.setCarAssembleListener(carAssembleListener);
-    }
-
-    public void setCarRequestListener(CarRequestListener carRequestListener) {
-        dealersPool.setCarRequestListener(carRequestListener);
-    }
-
-    public void setStorageListener(StorageListener storageListener) {
-        bodyStorage.setStorageListener(storageListener);
-        engineStorage.setStorageListener(storageListener);
-        accessoryStorage.setStorageListener(storageListener);
-        carStorage.setStorageListener(storageListener);
-    }
-
-    public void setFactoryTasksListener(FactoryTasksListener factoryTasksListener) {
-        factory.setFactoryTasksListener(factoryTasksListener);
+        this.dealersPool = new WorkersThreadPool<>(
+                dealersCreator,
+                config.dealersCount()
+        );
     }
 
     public void setBodySupplyTime(int newValue) {

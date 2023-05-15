@@ -1,10 +1,10 @@
-package ru.nsu.kondrenko.model.work.sale;
+package ru.nsu.kondrenko.model.work.carsale;
 
 import ru.nsu.kondrenko.model.listeners.CarRequestListener;
 import ru.nsu.kondrenko.model.products.Car;
 import ru.nsu.kondrenko.model.storage.Storage;
-import ru.nsu.kondrenko.model.work.Worker;
 import ru.nsu.kondrenko.model.work.factory.FactoryPlanner;
+import ru.nsu.kondrenko.model.work.factory.Worker;
 
 import java.util.logging.Logger;
 
@@ -12,20 +12,26 @@ public class Dealer extends Worker {
     private final Storage<Car> storage;
     private final FactoryPlanner factoryPlanner;
     private final Logger logger;
+    private final CarRequestListener carRequestListener;
     private final Object factoryPlannerSynchronizationObject;
-    private CarRequestListener carRequestListener;
 
-    public Dealer(int carRequestTime, FactoryPlanner factoryPlanner, Storage<Car> storage, Logger logger) {
+    public Dealer(Storage<Car> storage,
+                  CarRequestListener carRequestListener,
+                  FactoryPlanner factoryPlanner,
+                  Logger logger,
+                  int carRequestTime) {
+
         super(carRequestTime);
         this.factoryPlanner = factoryPlanner;
         this.storage = storage;
         this.logger = logger;
+        this.carRequestListener = carRequestListener;
         this.factoryPlannerSynchronizationObject = factoryPlanner.getSynchronizationObject();
     }
 
     @Override
     public void run() {
-        while (!softlyInterrupted) {
+        while (!isSoftlyInterrupted()) {
             try {
                 final Car car = storage.take();
                 carRequestListener.notifyAboutCarSale();
@@ -35,7 +41,7 @@ public class Dealer extends Worker {
                     logger.info(message);
                 }
 
-                Thread.sleep(workTime);
+                Thread.sleep(getWorkTime());
 
                 synchronized (factoryPlannerSynchronizationObject) {
                     factoryPlanner.notifyAboutCarSale();
@@ -48,9 +54,5 @@ public class Dealer extends Worker {
         }
 
         interrupt();
-    }
-
-    public void setCarRequestListener(CarRequestListener carRequestListener) {
-        this.carRequestListener = carRequestListener;
     }
 }

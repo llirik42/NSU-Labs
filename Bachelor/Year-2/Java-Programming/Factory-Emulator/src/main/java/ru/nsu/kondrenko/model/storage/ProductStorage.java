@@ -8,11 +8,11 @@ import java.util.concurrent.BlockingQueue;
 
 public class ProductStorage<P extends Product> implements Storage<P> {
     private final BlockingQueue<P> storage;
+    private final StorageListener storageListener;
 
-    private StorageListener storageListener;
-
-    public ProductStorage(int maxCapacity) {
+    public ProductStorage(int maxCapacity, StorageListener storageListener) {
         storage = new ArrayBlockingQueue<>(maxCapacity);
+        this.storageListener = storageListener;
     }
 
     @Override
@@ -26,9 +26,5 @@ public class ProductStorage<P extends Product> implements Storage<P> {
         final P ret = storage.take();
         storageListener.notifyAboutProductTaken(ret);
         return ret;
-    }
-
-    public void setStorageListener(StorageListener storageListener) {
-        this.storageListener = storageListener;
     }
 }

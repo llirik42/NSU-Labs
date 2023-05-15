@@ -1,9 +1,8 @@
 package ru.nsu.kondrenko.model.work.factory;
 
 public abstract class FactoryPlanner extends Thread {
-    protected final Factory factory;
+    private final Factory factory;
     private final Object synchronizationObject = new Object();
-
     private boolean wasNotified = false;
 
     protected FactoryPlanner(Factory factory) {

@@ -7,26 +7,25 @@ import ru.nsu.kondrenko.model.products.Body;
 import ru.nsu.kondrenko.model.products.Car;
 import ru.nsu.kondrenko.model.products.Engine;
 import ru.nsu.kondrenko.model.storage.Storage;
-import ru.nsu.kondrenko.model.work.Worker;
 
 public class FactoryWorker extends Worker {
     private static int tasksCount = 0;
-
     private final Object synchronizationObject;
-
     private final Storage<Body> bodyStorage;
     private final Storage<Engine> engineStorage;
     private final Storage<Accessory> accessoryStorage;
     private final Storage<Car> carStorage;
+    private final CarAssembleListener carAssembleListener;
+    private final FactoryTasksListener factoryTasksListener;
 
-    private CarAssembleListener carAssembleListener;
-    private FactoryTasksListener factoryTasksListener;
-
-    public FactoryWorker(int workTIme, Object synchronizationObject,
+    public FactoryWorker(int workTIme,
                          Storage<Body> bodyStorage,
                          Storage<Engine> engineStorage,
                          Storage<Accessory> accessoryStorage,
-                         Storage<Car> carStorage) {
+                         Storage<Car> carStorage,
+                         CarAssembleListener carAssembleListener,
+                         FactoryTasksListener factoryTasksListener,
+                         Object synchronizationObject) {
 
         super(workTIme);
         this.synchronizationObject = synchronizationObject;
@@ -34,6 +33,8 @@ public class FactoryWorker extends Worker {
         this.engineStorage = engineStorage;
         this.accessoryStorage = accessoryStorage;
         this.carStorage = carStorage;
+        this.carAssembleListener = carAssembleListener;
+        this.factoryTasksListener = factoryTasksListener;
     }
 
     public static void addTasks(int newTasks) {
@@ -53,7 +54,7 @@ public class FactoryWorker extends Worker {
                     }
                 }
 
-                if (softlyInterrupted) {
+                if (isSoftlyInterrupted()) {
                     interrupt();
                     return;
                 }
@@ -68,28 +69,20 @@ public class FactoryWorker extends Worker {
                 return;
             }
 
-            if (softlyInterrupted) {
+            if (isSoftlyInterrupted()) {
                 interrupt();
             }
         }
-    }
-
-    public void setCarAssembleListener(CarAssembleListener carAssembleListener) {
-        this.carAssembleListener = carAssembleListener;
-    }
-
-    public void setFactoryTasksListener(FactoryTasksListener factoryTasksListener) {
-        this.factoryTasksListener = factoryTasksListener;
     }
 
     private void execute() throws InterruptedException {
         final Body body = bodyStorage.take();
         final Engine engine = engineStorage.take();
         final Accessory accessory = accessoryStorage.take();
-        Thread.sleep(workTime);
+        Thread.sleep(getWorkTime());
         final Car car = new Car(body, engine, accessory);
         carStorage.put(car);
         carAssembleListener.notifyAboutCarAssemble();
-        factoryTasksListener.notifyAboutClosingTask();
+        factoryTasksListener.notifyAboutCompletedTask();
     }
 }
