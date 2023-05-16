@@ -5,3 +5,4 @@
 * [СЛАУ + OpenMP](SLAE+OpenMP)
 * [Умножение матриц](Matrices-Multiplication)
 * [Игра "Жизнь"](Game-Of-Life)
+* [POSIX-threads](POSIX-Threads)
