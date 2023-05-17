@@ -1,5 +1,23 @@
 # Практические работы по предмету «Объектно-ориентированное программирование на Java»
 
-* [Стэковый калькулятор](Stack-Calculator)
-* [MVC + GUI](Chess)
-* [Эмулятор работы фабрики](Factory-Emulator)
+## Большие задачи
+
+1. [Стэковый калькулятор](Big-Tasks/Stack-Calculator)
+2. [MVC + GUI](Big-Tasks/Chess)
+3. [Эмулятор работы фабрики](Big-Tasks/Factory-Emulator)
+
+## Задания с семинаров
+
+1. [Types, classes, interfaces](Quick-Tasks/Types-Classes-Interfaces)
+2. [Collections](Quick-Tasks/Collections)
+3. [Exceptions, Streams](Quick-Tasks/Exceptions-Streams)
+4. [Enums, Generics](Quick-Tasks/Enums-Generics)
+5. [Threads](Quick-Tasks/Threads)
+6. [MVC](Quick-Tasks/MVC)
+7. [SWING](Quick-Tasks/Swing)
+8. [Concurrency](Quick-Tasks/Concurrency)
+9. [Synchronization](Quick-Tasks/Synchronization)
+10. [Maven](Quick-Tasks/Maven)
+11. [Basics of networking](Quick-Tasks/Networking)
+12. [HTTP(S), XML](Quick-Tasks/HTTP-XML)
+13. [Design patterns](Quick-Tasks/Design-Patterns)
