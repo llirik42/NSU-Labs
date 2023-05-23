@@ -65,7 +65,7 @@ Tl[i].repeatNum = abs(50 - i % 100) * abs(rank-(iterCounter % size)) * L;
 
     - **ОБЯЗАТЕЛЬНО** — долю дисбаланса
 
-    $$ 100\\% \cdot \frac{\Delta k}{\max_{p} T_k^p$$
+    $$ 100\\% \cdot \frac{\Delta k}{\max_{p} T_k^p}$$
 
 ## Дополнительные требования
 
