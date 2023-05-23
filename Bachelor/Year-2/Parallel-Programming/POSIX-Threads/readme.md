@@ -68,7 +68,7 @@ Tl[i].repeatNum = abs(50 - i % 100) * abs(rank-(iterCounter % size)) * L;
 
    $$100\\% \cdot \frac{\Delta k}{M}$$
 
-   гду $M = \max_{p} {T_k^p}$
+   где $$M = \max_{p} {T_k^p}$$
 
 ## Дополнительные требования
 
