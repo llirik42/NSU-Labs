@@ -63,8 +63,8 @@ Tl[i].repeatNum = abs(50 - i % 100) * abs(rank - (iterCounter % size)) * L;
    - время дисбаланса
    $$\Delta k = \max_{m, n} \\; |T_k^m - T_k^n|$$
    - долю дисбаланса
-   $$100\\% \cdot \frac{\Delta k}{M}$$
-   где $$M = \max_{p} \\; {T_k^p}$$
+   $$100\\% \cdot \frac{\Delta k}{M_k}$$
+   где $$M_k = \max_{p} \\; {T_k^p}$$
 
 ## Дополнительные требования
 
