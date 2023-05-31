@@ -5,6 +5,7 @@
 1. [Стэковый калькулятор](Big-Tasks/Stack-Calculator)
 2. [MVC + GUI](Big-Tasks/Chess)
 3. [Эмулятор работы фабрики](Big-Tasks/Factory-Emulator)
+4. [Сетевое программирование][Big-Tasks/Chat]
 
 ## Задания с семинаров
 

@@ -1,0 +1,17 @@
+# PORT=0 - random available port
+PORT=8888
+
+# maximum length of the queue of incoming connections
+BACKLOG=5
+
+# address of server
+BIND_ADDRESS=127.0.0.1
+
+# number of recent messages that will be sent to each new client
+RECENT_MESSAGES_COUNT=5
+
+# protocol (OBJECT/XML - ignoring the case)
+PROTOCOL=XML
+
+# whether to log all server events or not
+LOGGING=true
