@@ -41,11 +41,11 @@ java -cp Chat-1.0.jar ru.nsu.kondrenko.server.Main
 ### Запуск клиентов
 
 ```Bash
-java -cp Chat-1.0.jar ru.nsu.kondrenko.server.Main  # Client 1
+java -cp Chat-1.0.jar ru.nsu.kondrenko.client.Main  # Client 1
 ```
 
 ```Bash
-java -cp Chat-1.0.jar ru.nsu.kondrenko.server.Main  # Client 2
+java -cp Chat-1.0.jar ru.nsu.kondrenko.client.Main  # Client 2
 ```
 
 ...
