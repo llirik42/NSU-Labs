@@ -35,7 +35,7 @@ LOGGING=true
 #### Запуск
 
 ```Bash
-java -cp Chat-1.0.jar ru.nsu.kondrenko.server.Main  # Server
+java -cp Chat-1.0.jar ru.nsu.kondrenko.server.Main
 ```
 
 ### Запуск клиентов
