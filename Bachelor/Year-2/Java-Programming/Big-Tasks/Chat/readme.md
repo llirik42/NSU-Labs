@@ -12,7 +12,7 @@
 
 #### Пример конфигурационного файла
 
-```
+```properties
 # PORT=0 - random available port
 PORT=8888
 
