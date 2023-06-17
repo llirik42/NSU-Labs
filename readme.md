@@ -14,3 +14,4 @@
 * [Основы параллельного программирования](Bachelor/Year-2/Parallel-Programming)
 * [Операционные системы](Bachelor/Year-2/OS)
 * [Сетевые технологии](Bachelor/Year-2/Networks)
+* [Теория вероятностей и математическая статистика][Bachelor/Year2/TP&MS]
