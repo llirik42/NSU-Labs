@@ -15,5 +15,3 @@
 * [1](Instructions/1.pdf)
 * [2](Instructions/2.pdf)
 * [3](Instructions/3.pdf)
-
-***[Узлы](https://drive.google.com/drive/folders/19XIEhBNKXppMdIZGDRnzd6t3RWqMeSX5?usp=sharing) — виртуальные машины для VMware Workstation***.
