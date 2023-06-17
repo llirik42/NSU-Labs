@@ -9,7 +9,7 @@
 
 ### Второй курс
 * [Программирование на C++](Bachelor/Year-2/CPP-Programming)
-* [ЭВМ и перифирийные устройства](Bachelor/Year-2/Computers-and-Peripherals)
+* [ЭВМ и перифирийные устройства](Bachelor/Year-2/Computers-And-Peripherals)
 * [Программирование на Java](Bachelor/Year-2/Java-Programming)
 * [Основы параллельного программирования](Bachelor/Year-2/Parallel-Programming)
 * [Операционные системы](Bachelor/Year-2/OS)
