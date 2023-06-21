@@ -7,7 +7,6 @@
 
 #define SUCCESS_CODE 0
 #define ERROR_CODE 1
-#define DATA_NOT_AVAILABLE 2
 
 void enter_message(char* message);
 

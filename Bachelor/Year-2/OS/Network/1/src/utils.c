@@ -27,7 +27,3 @@ void on_message_recv(const struct sockaddr_in* from, const char* message) {
 void on_waiting_on_connections() {
     printf("Waiting on connections ...\n");
 }
-
-void on_connection_lost(const struct sockaddr_in* sockaddr) {
-    print_event("Connection is lost with", sockaddr, NULL);
-}
