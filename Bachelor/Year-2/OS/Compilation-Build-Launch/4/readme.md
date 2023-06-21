@@ -11,5 +11,5 @@ gcc hello4.c -o hello4.out
 # Запуск
 
 ```Bash
-./hello4
+./hello4.out
 ```

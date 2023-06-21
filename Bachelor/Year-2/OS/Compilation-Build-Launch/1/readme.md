@@ -7,7 +7,7 @@ gcc hello1.c -o hello1.out
 # Запуск
 
 ```Bash
-./hello1
+./hello1.out
 ```
 
 # Просмотр информации об исполняемом файле
