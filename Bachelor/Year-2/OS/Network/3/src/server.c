@@ -5,13 +5,10 @@
 #include <unistd.h>
 #include <sys/epoll.h>
 #include "config.h"
-#include "tcp_utils.h"
 #include "clients_container.h"
 #include "utils.h"
 
 #define BACKLOG 5
-#define ANY_CHILD_PROCESS_PID (-1)
-#define DEFAULT_WAIT_OPTIONS 0
 #define DEFAULT_EPOLL_FLAGS 0
 #define MAX_EVENTS_COUNT 64
 #define NO_TIMEOUT (-1)

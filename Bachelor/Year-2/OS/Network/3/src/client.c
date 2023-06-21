@@ -5,7 +5,6 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include "config.h"
-#include "tcp_utils.h"
 #include "utils.h"
 
 int open_server_connection(int* server_socket, struct sockaddr_in* server_sockaddr) {
