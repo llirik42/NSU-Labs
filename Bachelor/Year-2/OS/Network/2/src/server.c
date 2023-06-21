@@ -6,7 +6,7 @@
 #include <sys/wait.h>
 #include "config.h"
 #include "tcp_utils.h"
-#include "../utils.h"
+#include "utils.h"
 
 #define BACKLOG 5
 #define ANY_CHILD_PROCESS_PID (-1)

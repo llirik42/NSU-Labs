@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include "config.h"
 #include "udp_utils.h"
-#include "../utils.h"
+#include "utils.h"
 
 int open_server_connection(int* server_socket, struct sockaddr_in* server_sockaddr) {
     *server_socket = socket(AF_INET, SOCK_DGRAM, DEFAULT_PROTOCOL);

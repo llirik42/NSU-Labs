@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include "config.h"
 #include "udp_utils.h"
-#include "../utils.h"
+#include "utils.h"
 
 int create_server_socket(int* server_socket) {
     *server_socket = socket(AF_INET, SOCK_DGRAM, DEFAULT_PROTOCOL);
