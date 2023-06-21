@@ -2,7 +2,7 @@
 #include <string.h>
 #include <errno.h>
 #include "tcp_utils.h"
-#include "../utils.h"
+#include "utils.h"
 
 int recv_flags(int socket, size_t message_len, char* message, int flags) {
     const ssize_t recv_count = recv(socket, message, message_len, flags);

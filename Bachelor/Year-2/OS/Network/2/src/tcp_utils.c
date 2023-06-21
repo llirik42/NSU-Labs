@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "tcp_utils.h"
-#include "../utils.h"
+#include ".utils.h"
 
 int send_message(int socket, const char* message, ssize_t* sent_count) {
     const ssize_t sent = send(socket, message, strlen(message), DEFAULT_FLAGS);
