@@ -1,77 +1,21 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <stdbool.h>
 #include <unistd.h>
 #include <sys/wait.h>
 #include "config.h"
+#include "tcp_utils.h"
+#include "../utils.h"
 
 #define BACKLOG 5
 #define ANY_CHILD_PROCESS_PID (-1)
+#define DEFAULT_WAIT_OPTIONS 0
 
-void handle_connection(int client_socket_fd, const struct sockaddr_in* client_sockaddr) {
-    char message[MAX_MESSAGE_LENGTH] = {'\0'};
+int create_server_socket(int* server_socket) {
+    *server_socket = socket(AF_INET, SOCK_STREAM, DEFAULT_PROTOCOL);
 
-    while (true) {
-        const ssize_t recv_count = recv(client_socket_fd, message, MAX_MESSAGE_LENGTH, 0);
-
-        message[recv_count] = '\0';
-
-        if (recv_count == -1) {
-            perror("recv() failed");
-            return;
-        }
-
-        if (recv_count == 0) {
-            printf("Connection with %s:%d is lost\n",
-                   inet_ntoa(client_sockaddr->sin_addr),
-                   ntohs(client_sockaddr->sin_port));
-            return;
-        }
-
-        printf("Server received from %s:%d. Message: %s\n",
-               inet_ntoa(client_sockaddr->sin_addr),
-               ntohs(client_sockaddr->sin_port),
-               message);
-
-        const ssize_t send_count = send(client_socket_fd, message, recv_count, 0);
-
-        if (send_count == -1) {
-            perror("sendto() failed");
-            return;
-        }
-
-        printf("Server send: %s\n", message);
-    }
-}
-
-int wait_for_all_children_async() {
-    while (true) {
-        int wstatus;
-        int return_code = waitpid(ANY_CHILD_PROCESS_PID, &wstatus, WNOHANG);
-
-        if (return_code <= 0) {
-            return return_code;
-        }
-    }
-}
-
-int wait_for_all_children_sync() {
-    while (true) {
-        int wstatus;
-        int return_code = waitpid(ANY_CHILD_PROCESS_PID, &wstatus, 0);
-
-        if (return_code <= 0) {
-            return return_code;
-        }
-    }
-}
-
-int main() {
-    const int sever_socket = socket(AF_INET, SOCK_STREAM, 0);
-
-    if (sever_socket == -1) {
+    if (*server_socket == -1) {
         perror("Socket creation failed");
         return ERROR_CODE;
     }
@@ -82,28 +26,93 @@ int main() {
             .sin_port = htons(PORT)
     };
 
-    if (bind(sever_socket, (const struct sockaddr*) &server_sockaddr, sizeof(server_sockaddr)) == -1) {
+    if (bind(*server_socket, (const struct sockaddr *) &server_sockaddr, sizeof(server_sockaddr)) == -1) {
         perror("bind() failed");
-        if (close(sever_socket) == -1) {
+        if (close(*server_socket) == -1) {
             perror("close() failed");
         }
         return ERROR_CODE;
     }
 
-    if (listen(sever_socket, BACKLOG) == -1) {
+    if (listen(*server_socket, BACKLOG) == -1) {
         perror("listen() failed");
-        if (close(sever_socket) == -1) {
+        if (close(*server_socket) == -1) {
             perror("close() failed");
         }
         return ERROR_CODE;
     }
 
-    struct sockaddr_in client_sockaddr;
-    socklen_t socklen = sizeof(client_sockaddr);
-    int client_socket_fd;
-    printf("Waiting on connections ...\n");
+    return SUCCESS_CODE;
+}
+
+int wait_for_all_children(int options) {
     while (true) {
-        client_socket_fd = accept(sever_socket, (struct sockaddr*) &client_sockaddr, &socklen);
+        int wstatus;
+        int return_code = waitpid(ANY_CHILD_PROCESS_PID, &wstatus, options);
+
+        if (return_code <= 0) {
+            return return_code;
+        }
+    }
+}
+
+int wait_for_all_children_async() {
+    return wait_for_all_children(WNOHANG);
+}
+
+int wait_for_all_children_sync() {
+    return wait_for_all_children(DEFAULT_WAIT_OPTIONS);
+}
+
+void on_connection(const struct sockaddr_in* sockaddr) {
+    print_event("New client", sockaddr, NULL);
+}
+
+int handle_connection(int server_socket, struct client_t* client) {
+    socklen_t client_sockaddr_len = sizeof(client->sockaddr);
+    client->socket_fd = accept(server_socket, (struct sockaddr*) &client->sockaddr, &client_sockaddr_len);
+
+    if (client->socket_fd == -1) {
+        perror("accept() failed");
+        return ERROR_CODE;
+    }
+
+    on_connection(&client->sockaddr);
+
+    return SUCCESS_CODE;
+}
+
+void handle_client(const struct client_t* client) {
+    char message[MAX_MESSAGE_LENGTH] = {'\0'};
+
+    while (true) {
+        if (recv_message(client->socket_fd, MAX_MESSAGE_LENGTH, message) != SUCCESS_CODE) {
+            on_connection_lost(&client->sockaddr);
+            break;
+        }
+
+        on_message_recv(&client->sockaddr, message);
+
+        if (send_message(client->socket_fd, message, NULL) != SUCCESS_CODE) {
+            break;
+        }
+
+        on_message_sent(&client->sockaddr, message);
+    }
+}
+
+int main() {
+    int server_socket;
+
+    if (create_server_socket(&server_socket) != SUCCESS_CODE) {
+        return ERROR_CODE;
+    }
+
+    on_waiting_on_connections();
+
+    while (true) {
+        struct client_t client;
+        handle_connection(server_socket, &client);
 
         const int pid = fork();
 
@@ -111,26 +120,31 @@ int main() {
             perror("fork() failed");
             break;
         }
-        if (pid > 0) {
-            // Parent
 
-            close(client_socket_fd);
+        // Parent
+        if (pid > 0) {
+            close(client.socket_fd);
             if (wait_for_all_children_async() == -1) {
                 perror("waitpid() failed");
                 break;
             }
-
             continue;
         }
 
-        // Child work
-        handle_connection(client_socket_fd, &client_sockaddr);
-        close(client_socket_fd);
-        close(sever_socket);
+        // Child
+        handle_client(&client);
+
+        if (close(client.socket_fd) == -1) {
+            perror("close(client_socket) failed");
+        }
+        if (close(server_socket) == -1) {
+            perror("close(server_socket) failed");
+        }
+
         return ERROR_CODE;
     }
 
-    if (close(sever_socket) == -1) {
+    if (close(server_socket) == -1) {
         perror("close() failed");
     }
 

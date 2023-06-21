@@ -1,16 +1,16 @@
 #include <stdio.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
-#include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
 #include "config.h"
+#include "udp_utils.h"
+#include "../utils.h"
 
-int main() {
-    const int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+int create_server_socket(int* server_socket) {
+    *server_socket = socket(AF_INET, SOCK_DGRAM, DEFAULT_PROTOCOL);
 
-    if (sock == -1) {
+    if (*server_socket == -1) {
         perror("Socket creation failed");
         return ERROR_CODE;
     }
@@ -21,55 +21,44 @@ int main() {
             .sin_port = htons(PORT)
     };
 
-    if (bind(sock, (const struct sockaddr*) &server_sockaddr, sizeof(server_sockaddr)) == -1) {
+    if (bind(*server_socket, (const struct sockaddr *) &server_sockaddr, sizeof(server_sockaddr)) == -1) {
         perror("bind() failed");
-        if (close(sock) == -1) {
+        if (close(*server_socket) == -1) {
             perror("close() failed");
         }
         return ERROR_CODE;
     }
 
-    char message[MAX_MESSAGE_LENGTH] = {'\0'};
+    return SUCCESS_CODE;
+}
 
-    struct sockaddr_in client_sockaddr;
-    socklen_t socklen = sizeof(client_sockaddr);
-    printf("Waiting on connections ...\n");
-    while (true) {
-        ssize_t recv_count = recvfrom(sock,
-                                  message,
-                                  MAX_MESSAGE_LENGTH,
-                                  0,
-                                  (struct sockaddr*) &client_sockaddr,
-                                  &socklen);
+int main() {
+    int server_socket;
 
-        message[recv_count] = '\0';
-
-        if (recv_count == -1) {
-            perror("recv() failed");
-            break;
-        }
-
-        printf("Server received from %s:%d. Message: %s\n",
-               inet_ntoa(client_sockaddr.sin_addr),
-               ntohs(client_sockaddr.sin_port),
-               message);
-
-        ssize_t send_count = sendto(sock,
-                                    message,
-                                    recv_count,
-                                    0,
-                                    (const struct sockaddr*) &client_sockaddr,
-                                            socklen);
-
-        if (send_count == -1) {
-            perror("sendto() failed");
-            break;
-        }
-
-        printf("Server send: %s\n", message);
+    if (create_server_socket(&server_socket) != SUCCESS_CODE) {
+        return ERROR_CODE;
     }
 
-    if (close(sock) == -1) {
+    char message[MAX_MESSAGE_LENGTH] = {'\0'};
+
+    on_waiting_on_connections();
+
+    while (true) {
+        struct sockaddr_in client_sockaddr;
+        if (recv_message(server_socket, &client_sockaddr, MAX_MESSAGE_LENGTH, message) != SUCCESS_CODE) {
+            break;
+        }
+
+        on_message_recv(&client_sockaddr, message);
+
+        if (send_message(server_socket, &client_sockaddr, message, NULL) != SUCCESS_CODE) {
+            break;
+        }
+
+        on_message_sent(&client_sockaddr, message);
+    }
+
+    if (close(server_socket) == -1) {
         perror("close() failed");
     }
 

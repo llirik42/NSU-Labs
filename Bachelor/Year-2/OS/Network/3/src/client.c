@@ -2,78 +2,63 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <string.h>
 #include <stdbool.h>
 #include <unistd.h>
 #include "config.h"
+#include "tcp_utils.h"
+#include "../utils.h"
 
-void print_enter_message() {
-    printf("Enter your message: ");
-}
+int open_server_connection(int* server_socket, struct sockaddr_in* server_sockaddr) {
+    *server_socket = socket(AF_INET, SOCK_STREAM, DEFAULT_PROTOCOL);
 
-int main() {
-    const pid_t pid = getpid();
-
-    const int sock = socket(AF_INET, SOCK_STREAM, 0);
-
-    if (sock == -1) {
+    if (*server_socket == -1) {
         perror("Socket creation failed");
         return ERROR_CODE;
     }
 
-    const struct sockaddr_in server_sockaddr = {
-            .sin_family = AF_INET,
-            .sin_addr = inet_addr(LOCAL_HOST),
-            .sin_port = htons(PORT),
-    };
+    server_sockaddr->sin_family = AF_INET;
+    server_sockaddr->sin_addr.s_addr = inet_addr(LOCAL_HOST);
+    server_sockaddr->sin_port = htons(PORT);
 
-    char send_message[MAX_MESSAGE_LENGTH] = {'\0'};
-    char recv_message[MAX_MESSAGE_LENGTH] = {'\0'};
-
-    if (connect(sock, (const struct sockaddr*) &server_sockaddr, sizeof(server_sockaddr))) {
+    if (connect(*server_socket, (const struct sockaddr*) server_sockaddr, sizeof(*server_sockaddr))) {
         perror("connect() failed");
         return ERROR_CODE;
     }
 
-    bool error = false;
+    return SUCCESS_CODE;
+}
+
+int main() {
+    int server_socket;
+    struct sockaddr_in server_sockaddr;
+
+    if (open_server_connection(&server_socket, &server_sockaddr) != SUCCESS_CODE) {
+        return ERROR_CODE;
+    }
+
+    char message_to_send[MAX_MESSAGE_LENGTH + 1] = {'\0'};
+    char message_to_recv[MAX_MESSAGE_LENGTH + 1] = {'\0'};
 
     while (true) {
-        print_enter_message();
-        if (scanf("%s", send_message) < 0) {
+        enter_message(message_to_send);
+
+        ssize_t sent_count;
+        if (send_message(server_socket, message_to_send, &sent_count) != SUCCESS_CODE) {
             break;
         }
 
-        const ssize_t send_count = send(sock, send_message, strlen(send_message), 0);
+        on_message_sent(&server_sockaddr, message_to_send);
 
-        if (send_count == -1) {
-            perror("sendto() failed");
-            error = true;
+        if (recv_message(server_socket, sent_count,message_to_recv) != SUCCESS_CODE) {
             break;
         }
 
-        printf("%d send: %s\n", pid, send_message);
-
-        const ssize_t recv_count = recv(sock, recv_message, send_count, 0);
-
-        recv_message[recv_count] = '\0';
-
-        if (recv_count == -1) {
-            perror("recv() failed");
-            error = true;
-            break;
-        }
-
-        printf("%d received from %s:%d. Message: %s\n",
-               pid,
-               inet_ntoa(server_sockaddr.sin_addr),
-               ntohs(server_sockaddr.sin_port),
-               recv_message);
+        on_message_recv(&server_sockaddr, message_to_recv);
     }
 
-    if (close(sock) == -1) {
+    if (close(server_socket) == -1) {
         perror("close() failed");
-        error = true;
     }
 
-    return error ? ERROR_CODE : SUCCESS_CODE;
+    return ERROR_CODE;
 }
