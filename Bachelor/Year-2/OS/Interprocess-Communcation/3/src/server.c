@@ -10,6 +10,7 @@ int create_server_socket(int* server_socket) {
     if (access(SERVER_SOCKET_FILE_NAME, F_OK) == 0) {
         if (unlink(SERVER_SOCKET_FILE_NAME) == -1) {
             perror("unlink() failed");
+            return ERROR_CODE;
         }
     }
 

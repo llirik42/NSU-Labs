@@ -40,7 +40,7 @@ int child() {
 int main() {
     printf("%-40s%d\n", "Parent", getpid());
 
-    const int stack_file_fd = open(STACK_FILE_NAME, O_RDWR | O_CREAT |O_TRUNC, S_IRWXU);
+    const int stack_file_fd = open(STACK_FILE_NAME, O_RDWR | O_CREAT | O_TRUNC, S_IRWXU);
     if (stack_file_fd == -1) {
         perror("open() failed");
         exit(ERROR_CODE);
@@ -72,7 +72,7 @@ int main() {
                      stack_file_fd,
                      0);
 
-    // We can safely close fd here because regions in the process bind to file*, not fd
+    // We can safely close fd here because regions in the process bind to struct file*, not fd
     if (close(stack_file_fd) == -1) {
         perror("Stack-file closing");
         exit(ERROR_CODE);
@@ -86,7 +86,7 @@ int main() {
     bool error = false;
     bool cloned = true;
 
-    // We have to specify SIGCHLD because otherwise parent process won't know if child process terminated or not
+    // We have to specify SIGCHLD because otherwise parent process won't know whether child process terminated or not
     if (clone(child, ptr + stack_file_size - 1, CLONE_FS | SIGCHLD, NULL) == -1) {
         cloned = false;
         perror("Clone() failed");
