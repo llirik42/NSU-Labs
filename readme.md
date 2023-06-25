@@ -1,13 +1,11 @@
-# Практические работы, выполненные в период обучения в НГУ
+# Бакалавриат
 
-## Бакалавриат
-
-### Первый курс
+## Первый курс
 
 * [Программирование на C](Bachelor/Year-1/C-programming)
 * [Цифровая схемотехника](Bachelor/Year-1/Digital-Circuitry)
 
-### Второй курс
+## Второй курс
 * [Программирование на C++](Bachelor/Year-2/CPP-Programming)
 * [ЭВМ и перифирийные устройства](Bachelor/Year-2/Computers-And-Peripherals)
 * [Программирование на Java](Bachelor/Year-2/Java-Programming)
