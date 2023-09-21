@@ -6,36 +6,40 @@
 
 #define ERROR_CODE 1
 
+void async_signal_write(const char* message) {
+    write(1, message, strlen(message));
+    fsync(1);
+}
+
 void handler1(int sig) {
-    printf("Handler1!\n");
-    fflush(stdout);
+    async_signal_write("Handler1!\n");
 }
 
 void* first_routine() {
-//     sigset_t set;
-//     if (sigfillset(&set) == -1) {
-//         perror("first_routine: sigfillset() failed");
-//         return NULL;
-//     }
-//
-//     const int err = pthread_sigmask(SIG_SETMASK, &set, NULL);
-//     if (err) {
-//         fprintf(stderr, "first_routine: pthread_sigmask() failed: %s\n", strerror(err));
-//         return NULL;
-//     }
-
-    signal(SIGINT, handler1);
-
-    while (1) {
-         printf("1\n");
-         fflush(stdout);
-         sleep(1);
+     sigset_t set;
+     if (sigfillset(&set) == -1) {
+         perror("first_routine: sigfillset() failed");
+         return NULL;
      }
+
+     const int err = pthread_sigmask(SIG_SETMASK, &set, NULL);
+     if (err) {
+         fprintf(stderr, "first_routine: pthread_sigmask() failed: %s\n", strerror(err));
+         return NULL;
+     }
+    return NULL;
+
+//    signal(SIGINT, handler1);
+//
+//    while (1) {
+//        printf("1\n");
+//        fflush(stdout);
+//        sleep(1);
+//    }
 }
 
 void handler2(int sig) {
-    printf("Handler2!\n");
-    fflush(stdout);
+    async_signal_write("Handler2!\n");
 }
 
 void* second_routine() {
