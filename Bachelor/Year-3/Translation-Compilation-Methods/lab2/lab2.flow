@@ -1,9 +1,5 @@
 import string;
 
-export {
-    sum(ia: [int]) -> int;
-}
-
 sum(ia: [int]) -> int {
     fold(ia, 0, \x, y -> x+y);
 }
