@@ -1,0 +1,19 @@
+import string;
+
+ia2sa(ia: [int]) -> [string] {
+    map(ia, i2s);
+}
+
+psa(sa: [string]) -> void {
+    println(strGlue(sa, ", "));
+}
+
+pia(ia: [int]) {
+    psa(ia2sa(ia));
+}
+
+main() {
+	ia: [int] = [1, 1, 1, 1, 2];
+    pia(ia);
+    quit(0);
+}

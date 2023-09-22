@@ -19,3 +19,4 @@
 
 * [Сетевые технологии и телекоммуникации](Bachelor/Year-3/Networks)
 * [Операционные системы](Bachelor/Year-3/OS)
+* [Методы трансляции и компиляции](Bachelor/Year-3/Translation-Compilation-Methods)

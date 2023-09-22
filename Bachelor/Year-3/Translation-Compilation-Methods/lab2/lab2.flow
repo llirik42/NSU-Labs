@@ -1,0 +1,15 @@
+import string;
+
+export {
+    sum(ia: [int]) -> int;
+}
+
+sum(ia: [int]) -> int {
+    fold(ia, 0, \x, y -> x+y);
+}
+
+main() {
+    array: [int] = [3, 4, 7];
+    println(sum(array));
+    quit(0);
+}
