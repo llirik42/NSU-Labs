@@ -1,0 +1,74 @@
+import string;
+import ds/tree;
+import ds/array;
+
+intLoop(a: [int], m: int, i: int, j: int, acc: ref [Pair<int, int>]) -> void {
+    if (i >= j && a[i] + a[j] == m) {
+        refArrayPush(acc, Pair(i, j));
+    }
+    if (j < length(a) - 1) {
+        intLoop(a, m, i, j + 1, acc);
+    }
+}
+
+extLoop(a: [int], m: int, i: int, acc: ref [Pair<int, int>]) -> void {
+    intLoop(a, m, i, 0, acc);
+
+    if (i < length(a) - 1) {
+        extLoop(a, m, i + 1, acc);
+    }
+}
+
+inds1(a: [int], m: int) -> [Pair<int, int>] {
+    acc: ref [Pair<int, int>] = ref [];
+    extLoop(a, m, 0, acc);
+    ^acc;
+}
+
+inds2(a: [int], m: int) -> [Pair<int, int>] {
+    foldi(
+        a, [], \i, acc1, x -> {
+            foldi(
+                a, acc1, \j, acc2, y -> {
+                    if (i >= j && x + y == m) {
+                        arrayPush(acc2, Pair(i, j));
+                    } else {
+                        acc2;
+                    }
+                }
+            )
+        }
+    );
+}
+
+inds3(a: [int], m: int) -> [Pair<int, int>] {
+    tree: Tree<int, [int]> = foldi(
+        a, makeTree(), \i, acc, e -> {
+            treePushToArrayValue(acc, e, i);
+        }
+    );
+    
+    foldi(
+        a, [], \i, acc1, x -> {
+            fold(
+                getTreeArrayValue(tree,  m - x), acc1, \acc2, j -> {
+                    if (i >= j) {
+                        arrayPush(acc2, Pair(i, j));
+                    } else {
+                        acc2;
+                    }
+                }    
+            );
+        }
+
+    );
+}
+
+main() {
+    a: [int] = [1, 1, -1, -1, -1, 0, 0];
+    m: int = 0;
+    println(inds1(a, m));
+    println(inds2(a, m));
+    println(inds3(a, m));
+    quit(0);
+}

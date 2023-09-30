@@ -1,5 +1,4 @@
 import string;
-import ds/array;
 
 fib1(n: int) -> [int] {
     if (n < 0) {
