@@ -2,27 +2,27 @@
 
 ## Simple introduction into flow
 
-* [lab1](lab1)
-* [lab2](lab2)
-* [lab3](lab3)
-* [lab4](lab4)
+* [Lab1](lab1)
+* [Lab2](lab2)
+* [Lab3](lab3)
+* [Lab4](lab4)
 
 ## Formal computer languages, tiny computer algebra system
 
-* [lab5](lab5)
-* [lab6](lab6)
-* [lab7](lab7)
-* [lab8](lab8)
-* [lab9](lab9)
-* [lab10](lab10)
+* [Lab5](lab5)
+* [Lab6](lab6)
+* [Lab7](lab7)
+* [Lab8](lab8)
+* [Lab9](lab9)
+* [Lab10](lab10)
 
 ## Simple non-deterministic language NeMo
 
-* [lab11](lab11)
-* [lab12](lab12)
+* [Lab11](lab11)
+* [Lab12](lab12)
 
 ## Formal verification of NeMo programs
 
-* [lab13](lab13)
-* [lab14](lab14)
-* [lab15](lab15)
+* [Lab13](lab13)
+* [Lab14](lab14)
+* [Lab15](lab15)
