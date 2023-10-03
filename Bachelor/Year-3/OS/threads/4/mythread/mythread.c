@@ -77,13 +77,11 @@ int startup(void* arg) {
     executing_threads_count--;
     notify_all_on_address(&(mythread->exited));
 
-    if (mythread->detached || executing_threads_count == 0) {
-        mythread_exit(mythread->retval);
-    }
-    else {
+    if (!mythread->detached && executing_threads_count != 0) {
         wait_on_yes_no_address(&(mythread->joined), YES);
-        mythread_exit(mythread->retval);
     }
+
+    mythread_exit(mythread->retval);
 
     return SUCCESS;
 }
