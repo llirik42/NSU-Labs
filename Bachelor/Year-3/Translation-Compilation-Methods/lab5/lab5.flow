@@ -23,7 +23,7 @@ getRepr(e: Exp) -> string {
     }
 }
 
-grammar = compilePegGrammar("#include lingo/grammar.lingo");
+grammar = compilePegGrammar("#include lingo/lab5.lingo");
 
 main() {
     tests: [Pair<string, int>] = [
@@ -32,7 +32,7 @@ main() {
         Pair(" ( 4 ) ", 4),
         Pair(" ( 42 ) ", 42),
         Pair(" 1 + 2 ", 3),
-        Pair(" 1 + 2 + 3", 6),
+        Pair(" 1 + 2 + 3 ", 6),
         Pair(" 1 + 2 + 3 + 4 ", 10),
         Pair(" ( 1 + 2 ) ", 3),
         Pair(" ( 1 + 2 ) + 3 ", 6),
