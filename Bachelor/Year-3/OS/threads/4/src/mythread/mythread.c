@@ -49,18 +49,18 @@ void __attribute__ ((constructor)) library_startup() {
     zombie_threads = create_list();
 
     if (alive_threads == NULL || zombie_threads == NULL) {
-        printf("Not enough resources for \"<mythread.h>\"\n");
+        fprintf(stderr, "Not enough resources for \"<mythread.h>\"\n");
         exit(1);
     }
 
     if (create_gc_thread(zombie_threads) == -1) {
-        printf("Not enough resources for \"<mythread.h>\"\n");
+        fprintf(stderr, "Not enough resources for \"<mythread.h>\"\n");
         exit(1);
     }
 
     mythread_t main_mythread;
     if (create_main_mythread(&main_mythread) == -1) {
-        printf("Not enough resources for \"<mythread.h>\"\n");
+        fprintf(stderr, "Not enough resources for \"<mythread.h>\"\n");
         exit(1);
     }
 
