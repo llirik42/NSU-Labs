@@ -1,0 +1,135 @@
+import string;
+import lingo/pegcode/driver;
+
+
+Exp ::= Add, Mul, Int;
+Add : (e1 : Exp, e2 : Exp);
+Mul : (e1 : Exp, e2 : Exp);
+Int : (i : int);
+
+arithmGrammar = compilePegGrammar("#include lingo/grammar.lingo");
+
+getValue(e: Exp) -> int {
+    switch(e) {
+        Add(e1, e2): getValue(e1) + getValue(e2);
+        Mul(e1, e2): getValue(e1) * getValue(e2);
+        Int(i): i;
+    }
+}
+
+getRPNRepr(e: Exp) -> string {
+    switch(e) {
+        Add(e1, e2): getRPNRepr(e1) + " " + getRPNRepr(e2) + " +";
+        Mul(e1, e2): getRPNRepr(e1) + " " + getRPNRepr(e2) + " *";
+        Int(i): i2s(i);
+    }
+}
+
+getArithmRepr(e: Exp) -> string {
+    switch(e) {
+        Add(e1, e2): "(" + getArithmRepr(e1) + " + " + getArithmRepr(e2) + ")";
+        Mul(e1, e2): "(" + getArithmRepr(e1) + " * " + getArithmRepr(e2) + ")";
+        Int(i): i2s(i);
+    }
+}
+
+handleRPNToken(acc: [Exp], token: string) -> [Exp] {
+    if (isDigits(token)) {
+        arrayPush(acc, Int(s2i(token)));
+    } else {
+        operand1: Exp = acc[length(acc) - 1];
+        tmp1: [Exp] = removeIndex(acc, length(acc) - 1);
+        operand2: Exp = tmp1[length(tmp1) - 1];
+        tmp2: [Exp] = removeIndex(tmp1, length(tmp1) - 1);
+    
+        if (token == "+") {
+            arrayPush(tmp2, Add(operand2, operand1));
+        } else {
+            arrayPush(tmp2, Mul(operand2, operand1));
+        }
+    }
+}
+
+parseFromRPN(rpn: string) -> Exp {
+    tokens: [string] = strSplit(trim(rpn), " ");
+    fold(tokens, [], handleRPNToken)[0];
+}
+
+parseFromArithm(arithm: string) -> Exp {
+    parsic(arithmGrammar, arithm, defaultPegActions);
+}
+
+calcRPN(rpn: string) -> int {
+    getValue(parseFromRPN(rpn));
+}
+
+calcArithm(arithm: string) -> int {
+    getValue(parseFromArithm(arithm));
+}
+
+arithmToRPN(arithm: string) -> string {
+    getRPNRepr(parseFromArithm(arithm));
+}
+
+RPNToArithm(rpn: string) -> string {
+    getArithmRepr(parseFromRPN(rpn));
+}
+
+main() {
+    tests: [Pair<string, int>] = [
+        Pair(" 1 ", 1),
+        Pair(" 12 ", 12),
+        Pair(" 1 2 + ", 3), // 1 + 2
+        Pair(" 1 2 + 3 + ", 6), // 1 + 2 + 3
+        Pair(" 1 2 + 3 + 4 + ", 10), //  1 + 2 + 3 + 4
+        Pair(" 1 2 3 + + ", 6), // 1 + ( 2 + 3 )
+        Pair(" 1 2 3 + + 4 + ", 10), // 1 + ( 2 + 3 ) + 4
+        Pair(" 1 2 3 4 + + + ", 10), // 1 + ( 2 + ( 3 + 4 ) )
+        Pair(" 7 2 * ", 14), // 7 * 2
+        Pair(" 5 2 * 3 * 4 * ", 120), // 5 * 2 * 3 * 4
+        Pair(" 1 2 + 3 * ", 9), // ( 1 + 2 ) * 3
+        Pair(" 1 2 3 * + ", 7), // 1 + 2  * 3
+        Pair(" 5 2 3 * * ", 30), // 5 * ( 2 * 3 )
+        Pair(" 5 2 3 * * 4 * ", 120), // 5 * ( 2 * 3 ) * 4
+        Pair(" 4 2 3 + * ", 20), // 4 * ( 2 + 3 )
+        Pair(" 1 2 3 + 4 * + ", 21), // 1 + ( 2 + 3 ) * 4
+        Pair(" 1 2 + 3 4 + * 5 6 + * ", 231), // ( 1 + 2 ) * ( 3 + 4 ) * ( 5 + 6 )
+        Pair(" 1 0 * ", 0), // 1 * 0
+        Pair(" 0 0 + ", 0), // 0 + 0
+        Pair(" 6 2 3 + * 5 4 7 + * 9 * + ", 525), // 6 * ( 2 + 3 ) + 5 * ( 4 + 7 ) * 9
+        Pair(" 2 3 4 * + ", 14), // 2 + 3 * 4
+        Pair(" 1 2 + 3 + 4 + 5 + 6 + 1 2 + 2 * + 9 7 * 1 + 18 * + 100 9 1 2 4 * + + * + ", 2979), // 1+2+3+4+5+6+(1+2)*2+(9*7+1)*18+100*(9+(1+2*4))
+    ];
+   
+    fori(0, length(tests) - 1, \i -> {
+        RPNString: string = tests[i].first;
+        RPNvalue: int = calcRPN(RPNString);
+        
+        arithmString: string = RPNToArithm(RPNString);
+        arithmValue: int = calcArithm(arithmString);
+        
+        RPNFromArithmString: string = arithmToRPN(arithmString);
+        RPNFromArithmValue: int = calcRPN(RPNFromArithmString);
+
+        expectedValue: int = tests[i].second;
+
+        if (trim(RPNString) != RPNFromArithmString || RPNvalue != arithmValue || RPNvalue != RPNFromArithmValue || RPNvalue != expectedValue) {
+            println(i2s(RPNvalue) + "    " + trim(RPNString));
+            println(parseFromRPN(RPNString));
+            println("");
+
+            println(i2s(arithmValue) + "    " + arithmString);
+            println(parseFromArithm(arithmString));
+            println("");
+
+            println(i2s(RPNFromArithmValue) + "    " + RPNFromArithmString);
+            println(parseFromRPN(RPNFromArithmString));
+            println("");
+
+            println("Expected value: " + i2s(expectedValue));
+            println("\n");
+        };
+    });
+
+    quit(0);
+}

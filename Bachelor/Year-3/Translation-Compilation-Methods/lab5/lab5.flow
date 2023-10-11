@@ -17,13 +17,13 @@ getValue(e: Exp) -> int {
 
 getRepr(e: Exp) -> string {
     switch(e) {
-        Add(e1, e2): "(" + getRepr(e1) + " + " + getRepr(e2) + ")";
-        Mul(e1, e2): getRepr(e1) + " * " + getRepr(e2);
+        Add(e1, e2): "(" + getArithmRepr(e1) + " + " + getArithmRepr(e2) + ")";
+        Mul(e1, e2): "(" + getArithmRepr(e1) + " * " + getArithmRepr(e2) + ")";
         Int(i): i2s(i);
     }
 }
 
-grammar = compilePegGrammar("#include lingo/lab5.lingo");
+grammar = compilePegGrammar("#include lingo/grammar.lingo");
 
 main() {
     tests: [Pair<string, int>] = [
@@ -53,7 +53,8 @@ main() {
         Pair(" 1 * 0 ", 0),
         Pair(" 0 + 0 ", 0),
         Pair(" 6 * ( 2 + 3 ) + 5 * ( 4 + 7 ) * 9 ", 525),
-        Pair(" 2 + 3 * 4 ", 14)
+        Pair(" 2 + 3 * 4 ", 14),
+        Pair(" 1 + 2 + 3 + 4 + 5 + 6 + ( 1 + 2 ) * 2 + ( 9 * 7 + 1 ) * 18 + 100 * ( 9 + ( 1 + 2 * 4 ) ) ", 2979)
     ];
    
     fori(0, length(tests) - 1, \i -> {
