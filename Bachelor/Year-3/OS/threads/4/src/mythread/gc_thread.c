@@ -9,13 +9,8 @@
 struct list* zombie_threads_list;
 
 int gc(__attribute__((unused)) void* arg) {
-    uint32_t zero = 0;
-
     while (1) {
-        if (atomic_compare_exchange_strong(&(zombie_threads_list->length), &zero, 0)) {
-            futex(&(zombie_threads_list->length), FUTEX_WAIT, 0, NULL, NULL, 0);
-        }
-
+        wait_on_yes_no_address(&(zombie_threads_list->length), 1);
         free_content(zombie_threads_list);
     }
 }

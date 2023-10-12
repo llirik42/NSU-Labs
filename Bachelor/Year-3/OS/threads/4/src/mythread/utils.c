@@ -1,5 +1,3 @@
-#pragma once
-
 #define _GNU_SOURCE
 #include <sched.h>
 #include <unistd.h>

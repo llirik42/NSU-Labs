@@ -12,7 +12,7 @@ struct node {
 struct list {
     struct node* head;
     struct node* tail;
-    unsigned int length;
+    uint32_t length;
 };
 
 struct list* create_list();
