@@ -4,4 +4,4 @@ Implement a calculator, which uses a reverse polish notation (RPN) expressions a
 
 # Usage
 
-Folder `lingo` with `grammar.lingo` must be in root of flow9.
+Folder `lingo` with `lab6_arithm.lingo` and `lab6_rpn.lingo` must be in root of flow9.

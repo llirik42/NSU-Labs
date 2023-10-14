@@ -6,6 +6,6 @@ factor = int:e {:e} | '(' exp:e ')' {:e};
 
 int = digit+$d {Int(s2i($d))};
 
-digit = '0'-'9';
 ws = s*;
 s = " " | "\t" | "\n";
+digit = '0'-'9';
