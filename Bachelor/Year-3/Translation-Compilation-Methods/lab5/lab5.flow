@@ -23,7 +23,7 @@ getRepr(e: Exp) -> string {
     }
 }
 
-grammar = compilePegGrammar("#include lingo/grammar.lingo");
+grammar = compilePegGrammar("#include lingo/lab5.lingo");
 
 main() {
     tests: [Pair<string, int>] = [
