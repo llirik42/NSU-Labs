@@ -68,7 +68,7 @@ main() {
             println("Value=" + i2s(value));
 
             if (value !=tests[i].second) {
-                println("Error");
+                println("Expected=" + i2s(tests[i].second));
             }
 
             println("\n");
