@@ -5,4 +5,4 @@ Write a PEG-parser for a grammar of simple arithmetic expressions (with integer 
 
 # Usage
 
-Folder `lingo` with `grammar.lingo` must be in root of flow9.
+Folder `lingo` with `lab5.lingo` must be in root of flow9.
