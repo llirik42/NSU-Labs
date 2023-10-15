@@ -1,0 +1,214 @@
+import string;
+import lingo/pegcode/driver;
+import Lab7/quotient;
+
+Exp ::= Add, Sub, Mul, Div, Int, Var;
+Add : (e1 : Exp, e2 : Exp);
+Sub : (e1: Exp, e2 : Exp);
+Mul : (e1 : Exp, e2 : Exp);
+Div : (e1: Exp, e2: Exp);
+Int : (i : int);
+Var : (name: string);
+
+buildSub(xs : [flow]) {
+	fold(xs[1], xs[0], \acc, x -> Sub(acc, x))
+}
+
+buildDiv(xs : [flow]) {
+	fold(xs[1], xs[0], \acc, x -> Div(acc, x))
+}
+
+isAlNum(s: string, start: int, stop: int) -> bool {
+    if (start == stop) {
+        true;
+    } else {
+        (isDigit(getCharAt(s, 0)) || isLetter(getCharAt(s, 0))) && isAlNum(s, start + 1, stop);
+    }
+}
+
+isVarName(s: string) -> bool {
+    isLetter(getCharAt(s, 0)) && isAlNum(s, 1, strlen(s));
+}
+
+getAllVarsNames(e: Exp, acc: Set<string>) -> Set<string> {
+    switch(e) {
+        Add(e1, e2): mergeSetsA([acc, getAllVarsNames(e1, makeSet()), getAllVarsNames(e2, makeSet())]);
+        Sub(e1, e2): mergeSetsA([acc, getAllVarsNames(e1, makeSet()), getAllVarsNames(e2, makeSet())]);
+        Mul(e1, e2): mergeSetsA([acc, getAllVarsNames(e1, makeSet()), getAllVarsNames(e2, makeSet())]);
+        Div(e1, e2): mergeSetsA([acc, getAllVarsNames(e1, makeSet()), getAllVarsNames(e2, makeSet())]);
+        Int(i): acc;
+        Var(name): insertSet(acc, name);
+    }
+}
+
+checkVar(var: string, ctx: Tree<string, Quotient>) -> bool {
+    if (lookupTree(ctx, var) == None()) {
+        println("Unknown variable " + var);
+        false;
+    } else {
+        true;
+    }
+}
+
+checkVarsArray(a: [string], i: int, ctx: Tree<string, Quotient>) -> bool {
+    if (i == length(a)) {
+        true;
+    } else {
+        checkVar(a[i], ctx) && checkVarsArray(a, i + 1, ctx);
+    }
+}
+
+checkVars(vars: Set<string>, ctx: Tree<string, Quotient>) -> bool {
+    checkVarsArray(set2array(vars), 0, ctx);
+}
+
+getValueOfVar(varName: string, ctx: Tree<string, Quotient>) -> Quotient {
+	lookupTreeDef(ctx, varName, nan());
+}
+
+getValue(e: Exp, ctx: Tree<string, Quotient>) -> Quotient {
+    switch(e) {
+        Add(e1, e2): addQuotients(getValue(e1, ctx), getValue(e2, ctx));
+        Sub(e1, e2): subQuotients(getValue(e1, ctx), getValue(e2, ctx));
+        Mul(e1, e2): mulQuotients(getValue(e1, ctx), getValue(e2, ctx));
+        Div(e1, e2): divQuotients(getValue(e1, ctx), getValue(e2, ctx));
+        Int(i): intQuotient(i);
+        Var(name): getValueOfVar(name, ctx);
+    }
+}
+
+getRepr(e: Exp) -> string {
+    switch(e) {
+        Add(e1, e2): "(" + getRepr(e1) + " + " + getRepr(e2) + ")";
+        Sub(e1, e2): "(" + getRepr(e1) + " - " + getRepr(e2) + ")";
+        Mul(e1, e2): "(" + getRepr(e1) + " * " + getRepr(e2) + ")";
+        Div(e1, e2): "(" + getRepr(e1) + " / " + getRepr(e2) + ")";
+        Int(i): if (i < 0) "(" + i2s(i) + ")" else i2s(i);
+        Var(name): name;
+    }
+}
+
+grammar = compilePegGrammar("#include lingo/lab7.lingo");
+specialPegActions = {
+    t1 = setTree(defaultPegActions.t, "buildSub", buildSub);
+    t2 = setTree(t1, "buildDiv", buildDiv);
+	SemanticActions(t2);
+}
+
+main() {
+    tests: [Pair<string, Quotient>] = [
+        Pair(" 1 ", intQuotient(1)),
+        Pair(" 12 ", intQuotient(12)),
+        Pair(" ( 4 ) ", intQuotient(4)),
+        Pair(" ( 42 ) ", intQuotient(42)),
+        Pair(" 1 + 2 ", intQuotient(3)),
+        Pair(" 1 + 2 + 3 ", intQuotient(6)),
+        Pair(" 1 + 2 + 3 + 4 ", intQuotient(10)),
+        Pair(" ( 1 + 2 ) ", intQuotient(3)),
+        Pair(" ( 1 + 2 ) + 3 ", intQuotient(6)),
+        Pair(" 1 + ( 2 + 3 ) ", intQuotient(6)),
+        Pair(" 1 + ( 2 + 3 ) + 4 ", intQuotient(10)),
+        Pair(" 1 + ( 2 + ( 3 + 4 ) ) ", intQuotient(10)),
+        Pair(" 7 * 2 ", intQuotient(14)),
+        Pair(" 1 * 2 * 3 ", intQuotient(6)),
+        Pair(" 5 * 2 * 3 * 4 ", intQuotient(120)),
+        Pair(" ( 1 + 2 ) * 3 ", intQuotient(9)),
+        Pair(" 1 + 2  * 3 ", intQuotient(7)),
+        Pair(" ( 1 * 2 ) * 3 ", intQuotient(6)),
+        Pair(" 5 * ( 2 * 3 ) ", intQuotient(30)),
+        Pair(" 5 * ( 2 * 3 ) * 4 ", intQuotient(120)),
+        Pair(" 4 * ( 2 + 3 ) ", intQuotient(20)),
+        Pair(" 1 + ( 2 + 3 ) * 4 ", intQuotient(21)),
+        Pair(" ( 1 + 2 ) * ( 3 + 4 ) * ( 5 + 6 ) ", intQuotient(231)),
+        Pair(" 1 * 0 ", intQuotient(0)),
+        Pair(" 0 + 0 ", intQuotient(0)),
+        Pair(" 6 * ( 2 + 3 ) + 5 * ( 4 + 7 ) * 9 ", intQuotient(525)),
+        Pair(" 2 + 3 * 4 ", intQuotient(14)),
+        Pair(" 1 + 2 + 3 + 4 + 5 + 6 + ( 1 + 2 ) * 2 + ( 9 * 7 + 1 ) * 18 + 100 * ( 9 + ( 1 + 2 * 4 ) ) ", intQuotient(2979)),
+        Pair(" 1 - 2", intQuotient(-1)),
+        Pair(" 1 - 2 - 3", intQuotient(-4)),
+        Pair(" 1 - 2 - 3 - 4 - 5 - 6", intQuotient(-19)),
+        Pair(" 1 - ((2 - 3) - (4 - 5 - 6))", intQuotient(-5)),
+        Pair(" 1 - 1", intQuotient(0)),
+        Pair(" 1 / 2 ", createQuotient(1, 2)),
+        Pair(" -1 / 2 ", createQuotient(-1, 2)),
+        Pair(" 1 / (-2) ", createQuotient(-1, 2)),
+        Pair(" +10 / (-2) ", intQuotient(-5)),
+        Pair(" 1 / 2 / 3 ", createQuotient(1, 6)),
+        Pair(" 1 / 2 - 1 / 4 ", createQuotient(1, 4)),
+        Pair(" -3 / 4 * 16 / 5 ", createQuotient(-12, 5)),
+        Pair(" ( 5 + 4 ) / (-1 - 2) ", intQuotient(-3)),
+        Pair(" 1 / 6 + 1 / 3 ", createQuotient(1, 2)),
+        Pair(" 1 / 2 - 1 / 3 - 1 / 6 ", intQuotient(0)),
+        Pair(" 4 * 3 - 12 * 2 + 2 + 1 ", intQuotient(-9)),
+        Pair(" 4 * 3 * 4 - 12 * 2 * 5 ", intQuotient(-72)),
+        Pair(" -1 - 1 / 2 * 1 / 3 * 1 / 4 * 1 / 5 * 1 / 6 * 1 / 7 * 1 / 8 ", Quotient(-40321, 40320)),
+        Pair(" -1 / (2 + 3) ", createQuotient(-1, 5)),
+        Pair(" -1 / 2 * 8 ", intQuotient(-4)),
+        Pair(" 1 / 2 + 3 + 4 ", createQuotient(15, 2)),
+        Pair(" 1 * 2 + 3 * 4 + 5 * 6 ", intQuotient(44)),
+        Pair(" 1 - 2 + 3 - 4 + 5 - 6 + 7 - 8 ", intQuotient(-4)),
+        Pair(" 1 / 2 - 1 + 1 / 2", intQuotient(0)),
+        Pair(" 1 / 2 * 2 / 3 * 4 / 5 * 6", createQuotient(8, 5)),
+        Pair(" 1 * 3 / 5 * 7 / 9 * 11 / 13 * 15 ", createQuotient(77, 13)),
+        Pair(" ( -1 ) / 5 ", createQuotient(-1, 5)),
+        Pair(" ( -1 ) / 5 - ( -1 ) ", createQuotient(4, 5)),
+        Pair(" ( -1 ) / 5 - ( -1 ) / 6 ", createQuotient(-1, 30)),
+        Pair(" 1 / 2 - ( 3 )", createQuotient(-5, 2)),
+        Pair(" 1 / 2 - ( ( -1 ) / 5 )", createQuotient(7, 10)),
+        Pair(" 1 / 2 - ( ( -1 ) / 5 - ( -1 ) / 6 ) ", createQuotient(8, 15)),
+        Pair("( 1 / 2 - ( ( 6 ) * ( 7 ) / ( 12 ) ) ) ", intQuotient(-3)),
+        Pair(" ( 1 ) / 6 * 7 ", createQuotient(7, 6)),
+        Pair(" ( 1 / 2 - ( ( -1 ) / 5 - ( -1 ) / 6 * 7 / 13 ) ) ", createQuotient(119, 195)),
+        Pair(" ( 1 / 2 - ( ( -1 ) / 5 - ( -1 ) / 6 * 7 / 13 ) + 6 / 8 * 6 / 7 * ( -3 ) / ( -4) ) * 9 / 180 ", createQuotient(11929, 218400)),
+        Pair(" 1 + a ", intQuotient(2)),
+        Pair(" 1 + b ", intQuotient(-2)),
+        Pair(" 2 / c ", createQuotient(1, 21)),
+        Pair(" x * y ", createQuotient(-2, 3)),
+        Pair(" x + y ", createQuotient(-5, 6)),
+        Pair(" q - q ", nan()),
+        Pair(" 1 / 0 ", plusInf()),
+        Pair(" -1 / 0 ", minusInf()),
+        Pair(" 1 / 0 * 1 / 0 ", plusInf()),
+        Pair(" 1 / 0  + 1 / 0 ", plusInf()),
+        Pair(" 1 / 0  - 1 / 0 ", nan()),
+        Pair(" 0 / 0 ", nan()),
+        Pair(" 1 + z ", nan()),
+        Pair(" 3 + x1 ", intQuotient(4)),
+        Pair(" 3 + x2 ", intQuotient(5)),
+        Pair(" x1 + x1 + x1 + x2 * x2 * x2 ", intQuotient(11)),
+        Pair(" 1 / x3 ", intQuotient(11)),
+        Pair(" 1 / x3 + x4", intQuotient(11)),
+    ];
+    
+    ctx: Tree<string, Quotient> = setTreeValues(makeTree(), [
+        Pair("a", intQuotient(1)),
+        Pair("b", intQuotient(-3)),
+        Pair("c", intQuotient(42)),
+        Pair("x", createQuotient(1, 2)),
+        Pair("y", createQuotient(-4, 3)),
+        Pair("q", plusInf()),
+        Pair("z", nan()),
+        Pair("x1", intQuotient(1)),
+        Pair("x2", intQuotient(2)),
+    ]);
+       
+    fori(0, length(tests) - 1, \i -> {
+        str: string = tests[i].first;
+        expression = parsic(grammar, str, specialPegActions);
+        vars: Set<string> = getAllVarsNames(expression, makeSet());
+
+        if (!checkVars(vars, ctx)) {
+            println(str);
+            println("\n");
+        } else if (expression != flow("PARSING FAILED") && getValue(expression, ctx) != tests[i].second) {
+            println(str + "     ->    " + getRepr(expression));
+            value: Quotient = getValue(expression, ctx);
+            println("Value=" + getQuotientRepr(value));
+            println("Expected=" + getQuotientRepr(tests[i].second));
+            println("\n");
+        }
+    });
+
+    quit(0);
+}

@@ -1,0 +1,222 @@
+import string;
+import math/math;
+
+export {
+    // 1/0 - "+inf", -1/0 - "-inf", 0/0 - "nan"
+    Quotient : (m: int, n: int);
+
+    createQuotient(m: int, n: int) -> Quotient;
+
+    intQuotient(i: int) -> Quotient;
+
+    plusInf() -> Quotient;
+    
+    minusInf() -> Quotient;
+    
+    nan() -> Quotient;
+
+    isNumber(q: Quotient) -> bool;
+
+    isZero(q: Quotient) -> bool;
+
+    isPositive(q: Quotient) -> bool;
+
+    isNegative(q: Quotient) -> bool;
+
+    isPlusInf(q: Quotient) -> bool;
+
+    isMinusInf(q: Quotient) -> bool;
+
+    isInf(q: Quotient) -> bool;
+
+    isNan(q: Quotient) -> bool;
+
+    addQuotients(q1: Quotient, q2: Quotient) -> Quotient;
+
+    subQuotients(q1: Quotient, q2: Quotient) -> Quotient;
+
+    mulQuotients(q1: Quotient, q2: Quotient) -> Quotient;
+
+    divQuotients(q1: Quotient, q2: Quotient) -> Quotient;
+
+    getQuotientRepr(q: Quotient) -> string;
+
+    launchTests() -> void;
+}
+
+createQuotient(m: int, n: int) -> Quotient {
+    _gcd: int = gcd(iabs(m), iabs(n));
+    Quotient(isign(m) * isign(n) * iabs(m) / _gcd, iabs(n) / _gcd);
+}
+
+intQuotient(i: int) -> Quotient {
+    Quotient(i, 1);
+}
+
+plusInf() -> Quotient {
+    Quotient(1, 0);
+}
+    
+minusInf() -> Quotient {
+    Quotient(-1, 0);
+}
+    
+nan() -> Quotient {
+    Quotient(0, 0);
+}
+
+isNumber(q: Quotient) -> bool {
+    q.n != 0;    
+}
+
+isZero(q: Quotient) -> bool {
+    q.m == 0 && q.n != 0;
+}
+
+isPositive(q: Quotient) -> bool {
+    q.m * q.n > 0 || isPlusInf(q);
+}
+
+isNegative(q: Quotient) -> bool {
+    q.m * q.n < 0 || isMinusInf(q);
+}
+
+isPlusInf(q: Quotient) -> bool {
+    q == plusInf();
+}
+
+isMinusInf(q: Quotient) -> bool {
+    q == minusInf();
+}
+
+isInf(q: Quotient) -> bool {
+    isPlusInf(q) || isMinusInf(q);
+}
+
+isNan(q: Quotient) -> bool {
+    q == nan();
+}
+
+getQuotientRepr(q: Quotient) -> string {
+    if (isPlusInf(q)) {
+        "+inf";
+    } else if (isMinusInf(q)) {
+        "-inf";
+    } else if (isNan(q)) {
+        "nan";
+    } else if (q.n == 1) {
+        i2s(q.m);
+    } else {
+        i2s(q.m) + "/" + i2s(q.n);
+    }
+}
+
+addQuotients(q1: Quotient, q2: Quotient) -> Quotient {
+    if (isNan(q1) || isNan(q2)) {
+        nan();
+    } else if ((isPlusInf(q1) && isMinusInf(q2)) || (isMinusInf(q1) && isPlusInf(q2))) {
+        nan();
+    } else if (isPlusInf(q1) || isPlusInf(q2)) {
+        plusInf();
+    } else if (isMinusInf(q1) || isMinusInf(q2)) {
+        minusInf();
+    } else {
+        m1: int = q1.m;
+        n1: int = q1.n;
+        m2: int = q2.m;
+        n2: int = q2.n;
+        createQuotient(m1 * n2 + m2 * n1, n1 * n2);
+    }
+}
+
+subQuotients(q1: Quotient, q2: Quotient) -> Quotient {
+    addQuotients(q1, Quotient(-q2.m, q2.n));
+}
+
+mulQuotients(q1: Quotient, q2: Quotient) -> Quotient {
+    if (isNan(q1) || isNan(q2)) {
+        nan();
+    } else if ((isPlusInf(q1) && isPositive(q2)) || (isPlusInf(q2) && isPositive(q1))) {
+        plusInf();
+    } else if ((isMinusInf(q1) && isNegative(q2)) || (isMinusInf(q2) && isNegative(q1))) {
+        plusInf();
+    } else if ((isPlusInf(q1) && isNegative(q2)) || (isPlusInf(q2) && isNegative(q1))) {
+        minusInf();
+    } else if ((isMinusInf(q1) && isPositive(q2)) || (isMinusInf(q2) && isPositive(q1))) {
+        minusInf();
+    } else if ((isInf(q1) && isZero(q2)) || (isZero(q1) && isInf(q2))) {
+        nan();
+    } else {
+        createQuotient(q1.m * q2.m, q1.n * q2.n);
+    }
+}
+
+divQuotients(q1: Quotient, q2: Quotient) -> Quotient {
+    if (isNumber(q1) && isZero(q2)) {
+        if (isPositive(q1)) {
+            plusInf();
+        } else if (isZero(q1)) {
+            nan();
+        } else {
+            minusInf();
+        }
+    } else if (isZero(q1) && isNumber(q2)) {
+        intQuotient(0);
+    } else if (isNan(q1) || isNan(q2)) {
+        nan();
+    } else {
+        mulQuotients(q1, Quotient(q2.n, q2.m));
+    }
+}
+
+launchTests() -> void {
+    tests: [Pair<Quotient, Quotient>] = [
+        Pair(intQuotient(1), intQuotient(1)),
+        Pair(intQuotient(1), intQuotient(-1)),
+        Pair(intQuotient(-1), intQuotient(1)),
+        Pair(intQuotient(-1), intQuotient(-1)),
+        Pair(intQuotient(1), intQuotient(0)),
+        Pair(intQuotient(-1), intQuotient(0)),
+        Pair(intQuotient(0), intQuotient(1)),
+        Pair(intQuotient(0), intQuotient(-2)),
+        Pair(intQuotient(-2), intQuotient(4)),
+        Pair(intQuotient(100), intQuotient(50)),
+        Pair(intQuotient(0), intQuotient(0)),
+        Pair(plusInf(), intQuotient(1)),
+        Pair(plusInf(), intQuotient(-1)),
+        Pair(plusInf(), intQuotient(0)),
+        Pair(minusInf(), intQuotient(1)),
+        Pair(minusInf(), intQuotient(-1)),
+        Pair(minusInf(), intQuotient(0)),
+        Pair(plusInf(), minusInf()),
+        Pair(minusInf(), plusInf()),
+        Pair(plusInf(), plusInf()),
+        Pair(minusInf(), minusInf()),
+        Pair(intQuotient(1), plusInf()),
+        Pair(intQuotient(-1), plusInf()),
+        Pair(intQuotient(0), plusInf()),
+        Pair(intQuotient(1), minusInf()),
+        Pair(intQuotient(-1), minusInf()),
+        Pair(intQuotient(0), minusInf()),
+        Pair(nan(), intQuotient(0)),
+        Pair(nan(), intQuotient(1)),
+        Pair(nan(), intQuotient(-1)),
+        Pair(nan(), plusInf()),
+        Pair(nan(), minusInf()),
+        Pair(nan(), nan()),
+        Pair(createQuotient(1, 2), createQuotient(1, 3)),
+        Pair(createQuotient(10, -20), createQuotient(-100, -300)),
+        Pair(createQuotient(10, 40), createQuotient(17, 680)),
+        Pair(createQuotient(5, 3), createQuotient(-47, 3)),
+    ];
+
+    fori(0, length(tests) - 1, \i -> {
+        q1 = tests[i].first;
+        q2 = tests[i].second;
+        println(getQuotientRepr(q1) + "  +  " + getQuotientRepr(q2) + "  =  " + getQuotientRepr(addQuotients(q1, q2)));
+        println(getQuotientRepr(q1) + "  -  " + getQuotientRepr(q2) + "  =  " + getQuotientRepr(subQuotients(q1, q2)));
+        println(getQuotientRepr(q1) + "  *  " + getQuotientRepr(q2) + "  =  " + getQuotientRepr(mulQuotients(q1, q2)));
+        println(getQuotientRepr(q1) + "  /  " + getQuotientRepr(q2) + "  =  " + getQuotientRepr(divQuotients(q1, q2)));
+        println("\n");
+    });
+}
