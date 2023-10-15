@@ -66,11 +66,7 @@ main() {
             println(str + "     ->    " + getRepr(expression));
             value: int = getValue(expression);
             println("Value=" + i2s(value));
-
-            if (value !=tests[i].second) {
-                println("Expected=" + i2s(tests[i].second));
-            }
-
+            println("Expected=" + i2s(tests[i].second));
             println("\n");
         }
     });
