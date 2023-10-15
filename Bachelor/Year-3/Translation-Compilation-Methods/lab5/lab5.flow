@@ -62,7 +62,7 @@ main() {
         str: string = tests[i].first;
         expression = parsic(grammar, str, defaultPegActions);
         
-        if (expression != flow("PARSING FAILED")) {
+        if (expression != flow("PARSING FAILED") && getValue(expression) != tests[i].second) {
             println(str + "     ->    " + getRepr(expression));
             value: int = getValue(expression);
             println("Value=" + i2s(value));
