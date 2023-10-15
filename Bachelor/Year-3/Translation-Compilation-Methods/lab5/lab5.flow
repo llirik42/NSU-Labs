@@ -17,8 +17,8 @@ getValue(e: Exp) -> int {
 
 getRepr(e: Exp) -> string {
     switch(e) {
-        Add(e1, e2): "(" + getArithmRepr(e1) + " + " + getArithmRepr(e2) + ")";
-        Mul(e1, e2): "(" + getArithmRepr(e1) + " * " + getArithmRepr(e2) + ")";
+        Add(e1, e2): "(" + getRepr(e1) + " + " + getRepr(e2) + ")";
+        Mul(e1, e2): "(" + getRepr(e1) + " * " + getRepr(e2) + ")";
         Int(i): i2s(i);
     }
 }
@@ -54,22 +54,25 @@ main() {
         Pair(" 0 + 0 ", 0),
         Pair(" 6 * ( 2 + 3 ) + 5 * ( 4 + 7 ) * 9 ", 525),
         Pair(" 2 + 3 * 4 ", 14),
-        Pair(" 1 + 2 + 3 + 4 + 5 + 6 + ( 1 + 2 ) * 2 + ( 9 * 7 + 1 ) * 18 + 100 * ( 9 + ( 1 + 2 * 4 ) ) ", 2979)
+        Pair(" 1 + 2 + 3 + 4 + 5 + 6 + ( 1 + 2 ) * 2 + ( 9 * 7 + 1 ) * 18 + 100 * ( 9 + ( 1 + 2 * 4 ) ) ", 2979),
+        Pair(" Incorrect string ", 0)
     ];
    
     fori(0, length(tests) - 1, \i -> {
         str: string = tests[i].first;
         expression = parsic(grammar, str, defaultPegActions);
         
-        println(str + "     ->    " + getRepr(expression));
-        value: int = getValue(expression);
-        println("Value=" + i2s(value));
+        if (expression != flow("PARSING FAILED")) {
+            println(str + "     ->    " + getRepr(expression));
+            value: int = getValue(expression);
+            println("Value=" + i2s(value));
 
-        if (value !=tests[i].second) {
-            println("Error");
+            if (value !=tests[i].second) {
+                println("Error");
+            }
+
+            println("\n");
         }
-
-        println("\n");
     });
 
     quit(0);
