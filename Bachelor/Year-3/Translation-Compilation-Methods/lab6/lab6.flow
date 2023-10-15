@@ -60,7 +60,13 @@ handleRPNToken(acc: [Exp], token: RPNToken) -> [Exp] {
 }
 
 parseFromRPNTokens(tokens: [flow]) -> Exp {
-    fold(tokens[0], [], handleRPNToken)[0];
+    tmp: [Exp] = fold(tokens[0], [], handleRPNToken);
+
+    if (length(tmp) != 1) {
+        Invalid();
+    } else {
+        tmp[0];
+    }
 }
 
 parseFromRPNString(rpn: string) -> Exp {
@@ -120,10 +126,12 @@ main() {
         Pair(" 6 2 3 + * 5 4 7 + * 9 * + ", 525), // 6 * ( 2 + 3 ) + 5 * ( 4 + 7 ) * 9
         Pair(" 2 3 4 * + ", 14), // 2 + 3 * 4
         Pair(" 1 2 + 3 + 4 + 5 + 6 + 1 2 + 2 * + 9 7 * 1 + 18 * + 100 9 1 2 4 * + + * + ", 2979), // 1+2+3+4+5+6+(1+2)*2+(9*7+1)*18+100*(9+(1+2*4))
-        Pair("1+2", 0),
-        Pair("1+5", 0),
-        Pair("Incorrect string 1", 0),
-        Pair("Incorrect string 2", 0),
+        Pair(" 1 + 2 ", 0),
+        Pair(" 1 + 5 ", 0),
+        Pair(" Incorrect string 1 ", 0),
+        Pair(" Incorrect string 2 ", 0),
+        Pair(" 1 2 ", 0),
+        Pair(" 3 4 + + ", 0),
     ];
    
     fori(0, length(tests) - 1, \i -> {
