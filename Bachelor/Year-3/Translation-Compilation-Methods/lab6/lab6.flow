@@ -7,7 +7,20 @@ Mul : (e1 : Exp, e2 : Exp);
 Int : (i : int);
 Invalid : ();
 
-RPNToken: (s: string);
+RPNToken ::= IntToken, AddToken, MulToken;
+IntToken : (i : int);
+AddToken : ();
+MulToken : ();
+
+createRPNToken(s: string) -> RPNToken {
+    if (isDigits(s)) {
+        IntToken(s2i(s));
+    } else if (s == "+") {
+        AddToken();
+    } else {
+        MulToken();
+    }
+}
 
 getValue(e: Exp) -> int {
     switch(e) {
@@ -37,41 +50,46 @@ getArithmRepr(e: Exp) -> string {
 }
 
 handleRPNToken(acc: [Exp], token: RPNToken) -> [Exp] {
-    strToken: string = token.s;
-
-    if (isDigits(strToken)) {
-        arrayPush(acc, Int(s2i(strToken)));
-    } else {
-        if (length(acc) < 2) {
-            [Invalid()];
-        } else {
-            operand1: Exp = acc[length(acc) - 1];
-            tmp1: [Exp] = removeIndex(acc, length(acc) - 1);
-            operand2: Exp = tmp1[length(tmp1) - 1];
-            tmp2: [Exp] = removeIndex(tmp1, length(tmp1) - 1);
-        
-            if (strToken == "+") {
-                arrayPush(tmp2, Add(operand2, operand1));
+    switch(token) {
+        IntToken(i): arrayPush(acc, Int(i));
+        AddToken(): {
+            if (length(acc) < 2) {
+                [Invalid()];
             } else {
+                operand1: Exp = acc[length(acc) - 1];
+                tmp1: [Exp] = removeIndex(acc, length(acc) - 1);
+                operand2: Exp = tmp1[length(tmp1) - 1];
+                tmp2: [Exp] = removeIndex(tmp1, length(tmp1) - 1);
+                arrayPush(tmp2, Add(operand2, operand1));
+            }
+        }
+        MulToken(): {
+            if (length(acc) < 2) {
+                [Invalid()];
+            } else {
+                operand1: Exp = acc[length(acc) - 1];
+                tmp1: [Exp] = removeIndex(acc, length(acc) - 1);
+                operand2: Exp = tmp1[length(tmp1) - 1];
+                tmp2: [Exp] = removeIndex(tmp1, length(tmp1) - 1);
                 arrayPush(tmp2, Mul(operand2, operand1));
             }
         }
-    }
+    } 
 }
 
 parseFromRPNTokens(tokens: [flow]) -> Exp {
-    tmp: [Exp] = fold(tokens[0], [], handleRPNToken);
+    finalTokens: [Exp] = fold(tokens[0], [], handleRPNToken);
 
-    if (length(tmp) != 1) {
+    if (length(finalTokens) != 1) {
         Invalid();
     } else {
-        tmp[0];
+        finalTokens[0];
     }
 }
 
 parseFromRPNString(rpn: string) -> Exp {
     words: [string] = strSplit(trim(rpn), " ");
-    tokens: [flow] = [map(words, \w -> RPNToken(w))];
+    tokens: [flow] = [map(words, createRPNToken)];
     parseFromRPNTokens(tokens);
 }
 
@@ -98,8 +116,8 @@ RPNToArithm(rpn: string) -> string {
 arithmGrammar = compilePegGrammar("#include lingo/lab6_arithm.lingo");
 rpnGrammar = compilePegGrammar("#include lingo/lab6_rpn.lingo");
 specialPegActions = {
-    t = setTree(defaultPegActions.t, "parseFromRPNTokens", parseFromRPNTokens);
-    SemanticActions(t);
+	t = setTree(defaultPegActions.t, "parseFromRPNTokens", parseFromRPNTokens);
+	SemanticActions(t);
 }
 
 main() {
@@ -128,6 +146,7 @@ main() {
         Pair(" 1 2 + 3 + 4 + 5 + 6 + 1 2 + 2 * + 9 7 * 1 + 18 * + 100 9 1 2 4 * + + * + ", 2979), // 1+2+3+4+5+6+(1+2)*2+(9*7+1)*18+100*(9+(1+2*4))
         Pair(" 1 + 2 ", 0),
         Pair(" 1 + 5 ", 0),
+        Pair(" Incorrect string ", 0),
         Pair(" Incorrect string 1 ", 0),
         Pair(" Incorrect string 2 ", 0),
         Pair(" 1 2 ", 0),
