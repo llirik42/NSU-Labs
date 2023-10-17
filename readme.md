@@ -2,7 +2,7 @@
 
 ## Первый курс
 
-* [Программирование на C](Bachelor/Year-1/C-programming)
+* [Программирование на C](Bachelor/Year-1/C-Programming)
 * [Цифровая схемотехника](Bachelor/Year-1/Digital-Circuitry)
 
 ## Второй курс
