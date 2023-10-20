@@ -88,9 +88,7 @@ parseFromRPNTokens(tokens: [flow]) -> Exp {
 }
 
 parseFromRPNString(rpn: string) -> Exp {
-    words: [string] = strSplit(trim(rpn), " ");
-    tokens: [flow] = [map(words, createRPNToken)];
-    parseFromRPNTokens(tokens);
+    parsic(rpnGrammar, rpn, specialPegActions);
 }
 
 parseFromArithmString(arithm: string) -> Exp {
@@ -116,8 +114,8 @@ RPNToArithm(rpn: string) -> string {
 arithmGrammar = compilePegGrammar("#include lingo/lab6_arithm.lingo");
 rpnGrammar = compilePegGrammar("#include lingo/lab6_rpn.lingo");
 specialPegActions = {
-	t = setTree(defaultPegActions.t, "parseFromRPNTokens", parseFromRPNTokens);
-	SemanticActions(t);
+    t = setTree(defaultPegActions.t, "parseFromRPNTokens", parseFromRPNTokens);
+    SemanticActions(t);
 }
 
 main() {
