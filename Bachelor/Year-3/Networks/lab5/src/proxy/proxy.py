@@ -212,6 +212,7 @@ class Proxy:
             self.__forget_and_close_client_connection(client)
             return
 
+        print(f'New destination connection {destination}')
         destination.set_client_connection(client)
         self.__inputs.append(destination)
 
