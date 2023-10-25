@@ -12,11 +12,11 @@ Var : (name: string);
 Neg : (e: Exp);
 
 buildSub(xs : [flow]) {
-	fold(xs[1], xs[0], \acc, x -> Sub(acc, x))
+    fold(xs[1], xs[0], \acc, x -> Sub(acc, x))
 }
 
 buildDiv(xs : [flow]) {
-	fold(xs[1], xs[0], \acc, x -> Div(acc, x))
+    fold(xs[1], xs[0], \acc, x -> Div(acc, x))
 }
 
 isAlNum(s: string, start: int, stop: int) -> bool {
@@ -65,7 +65,7 @@ checkVars(vars: Set<string>, ctx: Tree<string, Quotient>) -> bool {
 }
 
 getValueOfVar(varName: string, ctx: Tree<string, Quotient>) -> Quotient {
-	lookupTreeDef(ctx, varName, nan());
+    lookupTreeDef(ctx, varName, nan());
 }
 
 getValue(e: Exp, ctx: Tree<string, Quotient>) -> Quotient {
@@ -96,7 +96,7 @@ grammar = compilePegGrammar("#include lingo/lab7.lingo");
 specialPegActions = {
     t1 = setTree(defaultPegActions.t, "buildSub", buildSub);
     t2 = setTree(t1, "buildDiv", buildDiv);
-	SemanticActions(t2);
+    SemanticActions(t2);
 }
 
 main() {
@@ -187,6 +187,10 @@ main() {
         Pair(" 1 + -( 3 + 4 ) ", intQuotient(-6)),
         Pair(" -( 3 + 4 ) + -( -2 -3 )", intQuotient(-2)),
         Pair(" -a", intQuotient(-1)),
+        Pair(" +a", intQuotient(1)),
+        Pair(" +5", intQuotient(5)),
+        Pair(" +( 1 + 12 )", intQuotient(13)),
+        Pair(" +( -1 - 2 )", intQuotient(-3)),
     ];
     
     ctx: Tree<string, Quotient> = setTreeValues(makeTree(), [
