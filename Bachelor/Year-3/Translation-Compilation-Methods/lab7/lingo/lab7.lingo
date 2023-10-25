@@ -9,9 +9,12 @@ divisor = ws '/' ws term:e {:e};
 subtrahend = ws '-' ws firstpriority:e {:e};
 
 term = int:e {:e} |
+       '-' int:e {Neg(:e)} |
        var:e {:e} |
-       '(' exp:e ')' {:e}; 
-int = ('-'? digit+)$d {Int(s2i($d))} | '+'? (digit+)$d {Int(s2i($d))};
+       '-' var:e {Neg(:e)} |
+       '(' exp:e ')' {:e} |
+       '-(' exp:e ')' {Neg(:e)};
+int = '+'? (digit+)$d {Int(s2i($d))};
 var = (letter (letter | digit)*)$n {Var(:n)};
 
 letter = 'a' - 'z' | 'A' - 'Z';
