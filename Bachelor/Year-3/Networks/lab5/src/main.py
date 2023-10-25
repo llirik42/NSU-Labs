@@ -1,6 +1,8 @@
 import argparse
 
 from proxy import *
+from proxy_logger.default_proxy_logger import DefaultProxyLogger
+from proxy_logger.proxy_logger import ProxyLogger
 
 if __name__ == '__main__':
     # curl vk.com --socks5 127.0.0.1:1080
@@ -11,5 +13,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     port: int = args.port
 
-    proxy: Proxy = Proxy(port)
+    logger: ProxyLogger = DefaultProxyLogger()
+
+    proxy: Proxy = Proxy(port=port, logger=logger)
     proxy.launch()

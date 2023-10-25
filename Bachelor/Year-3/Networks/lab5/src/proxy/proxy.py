@@ -1,12 +1,13 @@
 import ipaddress
 import select
 import socket
-import sys
 from typing import List, Optional, Dict
 
 from connection import *
 from dns_resolving import DNSResolver, get_dns_servers_ips
-from dns_resolving.dns_message import DNSMessage
+from dns_resolving.dns_request import DNSRequest
+from dns_resolving.dns_response import DNSResponse
+from proxy_logger.proxy_logger import ProxyLogger
 from server import Server
 from socks5 import *
 from utils import SocketLike, network_bytes_to_int, int_to_network_bytes
@@ -25,14 +26,19 @@ class Proxy:
     __port: int
     __localhost_bytes: bytes = socket.inet_aton('127.0.0.1')
 
-    def __init__(self, port: int):
+    __logger: ProxyLogger
+
+    def __init__(self, port: int, logger: ProxyLogger):
         self.__dns_resolver = self.__create_dns_resolver()
         self.__server = Server(port)
         self.__port = port
+        self.__logger = logger
 
     def launch(self) -> None:
         self.__inputs.append(self.__server)
         self.__inputs.append(self.__dns_resolver)
+
+        self.__logger.log_proxy_ready()
 
         while True:
             readable, writeable, exceptional = select.select(self.__inputs, [], self.__inputs)
@@ -57,11 +63,10 @@ class Proxy:
     def __handle_destination(self, destination: DestinationConnection) -> None:
         try:
             recv_data: bytes = destination.recv()
-        except OSError:
+        except OSError as e:
+            self.__logger.log_exception(exception=e, connection=destination)
             self.__forget_and_close_destination_connection(destination)
             return
-
-        print(f'Received {len(recv_data)} bytes from destination {destination}')
 
         if len(recv_data) == 0:
             self.__forget_and_close_destination_connection(destination)
@@ -71,11 +76,10 @@ class Proxy:
     def __handle_client(self, client: ClientConnection) -> None:
         try:
             recv_data: bytes = client.recv()
-        except OSError:
+        except OSError as e:
+            self.__logger.log_exception(exception=e, connection=client)
             self.__forget_and_close_client_connection(client)
             return
-
-        print(f'Received {len(recv_data)} bytes from client {client}')
 
         if len(recv_data) == 0:
             self.__forget_and_close_client_connection(client)
@@ -87,25 +91,28 @@ class Proxy:
         client_socket.setblocking(False)
         client: ClientConnection = ClientConnection(client_socket)
         self.__inputs.append(client)
-        print(f'New client connection {client}')
+        self.__logger.log_new_client(client)
 
     def __handle_dns_resolver(self) -> None:
-        message: DNSMessage = self.__dns_resolver.recv_response()
-        message_id: int = message.message_id
+        response: DNSResponse = self.__dns_resolver.recv_response()
+        self.__logger.log_dns_response(response)
 
+        message_id: int = response.message_id
         client: Optional[ClientConnection] = self.__find_client_by_message_id(message_id)
 
         if client is None:
-            self.__log_error(f'DNS-server sent message with unexpected message id {message_id}')
-        elif len(message.ips) == 0:
+            self.__logger.log_invalid_dns_message_id(message_id)
+        elif len(response.ips) == 0:
             client.push_and_send(create_error_server_reply(rep=CONNECTION_REFUSED).to_bytes())
             self.__forget_and_close_client_connection(client)
         else:
             request: ClientRequest = self.__requests.pop(message_id)
-            self.__complete_reply_to_request(client=client, ip=str(message.ips[0]),
+            self.__complete_reply_to_request(client=client, ip=str(response.ips[0]),
                                              port=network_bytes_to_int(request.dst_port))
 
     def __handle_non_empty_destination_message(self, destination: DestinationConnection, message: bytes) -> None:
+        self.__logger.log_destination_data(destination=destination, data=message)
+
         client: ClientConnection = destination.get_client_connection()
         if client.push_and_send(message) == 0:
             self.__forget_and_close_destination_connection(destination)
@@ -125,7 +132,7 @@ class Proxy:
             self.__handle_ready_for_communications_connection(client, message)
             return
 
-        self.__log_error(f'Malformed client connection {client}')
+        self.__logger.log_malformed_client(client)
         self.__forget_and_close_client_connection(client)
 
     def __handle_ready_for_greeting_client(self, client: ClientConnection) -> None:
@@ -136,10 +143,10 @@ class Proxy:
             if greeting is None:
                 return
         except ProtocolException as e:
-            self.__log_error(str(e))
+            self.__logger.log_exception(exception=e, connection=client)
             self.__forget_and_close_client_connection(client)
         else:
-            print(f'Received {greeting} from client {client}')
+            self.__logger.log_client_greeting(client=client, greeting=greeting)
             client.clear_data_to_recv()
             self.__reply_to_greeting(greeting, client)
 
@@ -151,10 +158,10 @@ class Proxy:
             if request is None:
                 return
         except ProtocolException as e:
-            self.__log_error(str(e))
+            self.__logger.log_exception(exception=e, connection=client)
             self.__forget_and_close_client_connection(client)
         else:
-            print(f'Received {request} from client {client}')
+            self.__logger.log_client_request(client=client, request=request)
             client.clear_data_to_recv()
             self.__reply_to_request(request, client)
 
@@ -162,8 +169,10 @@ class Proxy:
         destination: Optional[DestinationConnection] = client.get_destination_connection()
 
         if destination is None:
-            self.__log_error(f"Internal error: client {client} doesn't have destination")
+            self.__logger.log_malformed_client(client=client)
             self.__forget_and_close_client_connection(client)
+
+        self.__logger.log_client_data(client=client, data=message)
 
         if destination.push_and_send(message) == 0:
             self.__forget_and_close_destination_connection(destination)
@@ -177,6 +186,8 @@ class Proxy:
             server_greeting: ServerGreeting = create_success_server_greeting()
             client.set_ready_for_request_state()
 
+        self.__logger.log_greeting_reply(client=client, reply=server_greeting)
+
         if client.push_and_send(server_greeting.to_bytes()) == 0:
             self.__forget_and_close_client_connection(client)
 
@@ -188,12 +199,18 @@ class Proxy:
         error: bool = not is_success_rep(rep)
 
         if error:
-            client.push_and_send(create_error_server_reply(rep).to_bytes())
+            reply: ServerReply = create_error_server_reply(rep)
+            self.__logger.log_request_reply(client=client, reply=reply)
+            client.push_and_send(reply.to_bytes())
             self.__forget_and_close_client_connection(client)
             return
 
         if is_domain_name_atyp(request.atyp):
-            self.__dns_resolver.send_request(domain_name=request.dst_addr.decode(), message_id=self.__global_message_id)
+            dns_request: DNSRequest = DNSRequest(domain_name=request.dst_addr.decode(),
+                                                 message_id=self.__global_message_id)
+            self.__dns_resolver.send_request(dns_request)
+            self.__logger.log_dns_request(dns_request)
+
             client.set_message_id(self.__global_message_id)
             self.__requests.update([(self.__global_message_id, request)])
             self.__global_message_id += 1
@@ -208,31 +225,37 @@ class Proxy:
         try:
             destination: DestinationConnection = IPv4DestinationConnection(ip=ip, port=port)
         except OSError as e:
-            client.push_and_send(create_error_server_reply_from_exception(e).to_bytes())
+            self.__logger.log_exception(exception=e, connection=client)
+            reply: ServerReply = create_error_server_reply_from_exception(e)
+            self.__logger.log_request_reply(client=client, reply=reply)
+
+            client.push_and_send(reply.to_bytes())
             self.__forget_and_close_client_connection(client)
             return
 
-        print(f'New destination connection {destination}')
+        self.__logger.log_new_destination(destination)
         destination.set_client_connection(client)
         self.__inputs.append(destination)
 
         client.set_destination_connection(destination)
         client.set_ready_for_sending_data_state()
 
-        server_reply = create_success_server_reply(
+        reply = create_success_server_reply(
             atyp=IPV4_ADDRESS_TYPE,
             bnd_addr=self.__localhost_bytes,
             bnd_port=int_to_network_bytes(self.__port)
         )
 
-        if client.push_and_send(server_reply.to_bytes()) == 0:
+        self.__logger.log_request_reply(client=client, reply=reply)
+
+        if client.push_and_send(reply.to_bytes()) == 0:
             self.__forget_and_close_client_connection(client)
 
-    @staticmethod
-    def __create_dns_resolver() -> DNSResolver:
+    def __create_dns_resolver(self) -> DNSResolver:
         dns_servers_ips: List[str] = get_dns_servers_ips()
         if len(dns_servers_ips) == 0:
-            raise Exception('No DNS servers found')
+            self.__logger.log_no_dns_servers()
+            exit(1)
 
         return DNSResolver(dns_server_ip=dns_servers_ips[0])
 
@@ -257,7 +280,7 @@ class Proxy:
         if connection is None:
             return
 
-        print(f'Connection {connection} is closed')
+        self.__logger.log_connection_close(connection)
         self.__try_to_remove(self.__inputs, connection)
         connection.close()
 
@@ -265,7 +288,3 @@ class Proxy:
     def __try_to_remove(a: list, value) -> None:
         if value in a:
             a.remove(value)
-
-    @staticmethod
-    def __log_error(error: str) -> None:
-        print(error, file=sys.stderr)

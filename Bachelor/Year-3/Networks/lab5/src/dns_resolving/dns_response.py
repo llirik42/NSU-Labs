@@ -4,6 +4,6 @@ from typing import List
 
 
 @dataclass
-class DNSMessage:
+class DNSResponse:
     message_id: int
     ips: List[ipaddress.IPv4Address]

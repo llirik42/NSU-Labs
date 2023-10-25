@@ -20,5 +20,6 @@ __all__ = [
     'CONNECTION_REFUSED',
     'IPV4_ADDRESS_TYPE',
     'create_error_server_reply_from_exception',
-    'create_error_server_reply'
+    'create_error_server_reply',
+    'ServerReply'
 ]
