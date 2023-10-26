@@ -41,7 +41,7 @@ class Proxy:
         self.__logger.log_proxy_ready()
 
         while True:
-            readable, writeable, exceptional = select.select(self.__inputs, [], self.__inputs)
+            readable, writeable, exceptional = select.select(self.__inputs, [], [])
 
             if len(readable) > 0:
                 self.__handle_readable(readable[0])
