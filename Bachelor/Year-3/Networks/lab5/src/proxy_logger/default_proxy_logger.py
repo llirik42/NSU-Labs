@@ -30,10 +30,10 @@ class DefaultProxyLogger(ProxyLogger):
         logging.info(f'Client {client} sent {request}')
 
     def log_client_data(self, client: ClientConnection, data: bytes) -> None:
-        logging.info(f'Client {client} sent {data[:10]}')
+        logging.info(self.__add_dots_if_long(f'Client {client} sent {data[:20]}', data))
 
     def log_destination_data(self, destination: DestinationConnection, data: bytes) -> None:
-        logging.info(f'Destination {destination} sent {data[:10]}')
+        logging.info(self.__add_dots_if_long(f'Destination {destination} sent {data[:20]}', data))
 
     def log_connection_close(self, connection: Connection) -> None:
         logging.info(f'Connection {connection} is closed')
@@ -65,3 +65,7 @@ class DefaultProxyLogger(ProxyLogger):
 
     def log_error(self, error: str) -> None:
         logging.error(error)
+
+    @staticmethod
+    def __add_dots_if_long(s: str, data: bytes) -> str:
+        return f'{s} ...' if len(data) > 20 else s
