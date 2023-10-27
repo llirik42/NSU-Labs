@@ -1,0 +1,23 @@
+exp = ws secondpriority:e ws {:e};
+
+secondpriority = firstpriority:e1 subtrahend*:es ws '+' ws secondpriority:e2 {Binary(buildSub(:e1, :es),:e2, AddOp())} |
+                 firstpriority:e1 subtrahend*:es {buildSub(:e1, :es)};
+firstpriority = term:e1 divisor*:es ws '*' ws firstpriority:e2 {Binary(buildDiv(:e1, :es),:e2, MulOp())} | 
+                term:e1 divisor*:es {buildDiv(:e1, :es)};
+
+divisor = ws '/' ws term:e {:e};
+subtrahend = ws '-' ws firstpriority:e {:e};
+
+term = '+'? const:e {:e} |
+       '-' const:e {Neg(:e)} |
+       '+'? var:e {:e} |
+       '-' var:e {Neg(:e)} |
+       '+'? '(' exp:e ')' {:e} |
+       '-(' exp:e ')' {Neg(:e)};
+const = digit+$d {Int(s2i($d))};
+var = (letter (letter | digit)*)$n {Var(:n)};
+
+letter = 'a' - 'z' | 'A' - 'Z';
+digit = '0'-'9';
+ws = s*;
+s = " " | "\t" | "\n";
