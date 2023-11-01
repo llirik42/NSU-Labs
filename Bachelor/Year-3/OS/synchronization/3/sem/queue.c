@@ -1,4 +1,5 @@
 #define _GNU_SOURCE
+
 #include <pthread.h>
 #include <assert.h>
 #include <unistd.h>
@@ -20,7 +21,7 @@
     }                         \
 }
 
-qnode_t* create_node(int val) {
+qnode_t *create_node(int val) {
     qnode_t *new = malloc(sizeof(qnode_t));
     if (!new) {
         printf("Cannot allocate memory for new node\n");
@@ -32,7 +33,18 @@ qnode_t* create_node(int val) {
     return new;
 }
 
-int pop(queue_t* q) {
+void append(queue_t* q, qnode_t* qnode) {
+    if (!q->first)
+        q->first = q->last = qnode;
+    else {
+        q->last->next = qnode;
+        q->last = q->last->next;
+    }
+    q->count++;
+    q->add_count++;
+}
+
+int pop(queue_t *q) {
     qnode_t *tmp = q->first;
 
     int ret = tmp->val;
@@ -46,42 +58,42 @@ int pop(queue_t* q) {
 }
 
 void *qmonitor(void *arg) {
-	queue_t *q = (queue_t *)arg;
+    queue_t *q = (queue_t *) arg;
 
-	printf("qmonitor: [%d %d %d]\n", getpid(), getppid(), gettid());
+    printf("qmonitor: [%d %d %d]\n", getpid(), getppid(), gettid());
 
-	while (1) {
-		queue_print_stats(q);
+    while (1) {
+        queue_print_stats(q);
         usleep(1000);
-	}
+    }
 }
 
-queue_t* queue_init(int max_count) {
-	queue_t *q = malloc(sizeof(queue_t));
-	if (!q) {
-		printf("Cannot allocate memory for a queue\n");
-		abort();
-	}
+queue_t *queue_init(int max_count) {
+    queue_t *q = malloc(sizeof(queue_t));
+    if (!q) {
+        printf("Cannot allocate memory for a queue\n");
+        abort();
+    }
 
-	q->first = NULL;
-	q->last = NULL;
-	q->max_count = max_count;
-	q->count = 0;
+    q->first = NULL;
+    q->last = NULL;
+    q->max_count = max_count;
+    q->count = 0;
 
-	q->add_attempts = q->get_attempts = 0;
-	q->add_count = q->get_count = 0;
+    q->add_attempts = q->get_attempts = 0;
+    q->add_count = q->get_count = 0;
 
     INIT_SEM(&(q->sem_available), 1)
     INIT_SEM(&(q->sem_empty), 0)
     INIT_SEM(&(q->sem_full), max_count)
 
     const int err2 = pthread_create(&q->qmonitor_tid, NULL, qmonitor, q);
-	if (err2) {
-		printf("queue_init: pthread_create() failed: %s\n", strerror(err2));
-		abort();
-	}
+    if (err2) {
+        printf("queue_init: pthread_create() failed: %s\n", strerror(err2));
+        abort();
+    }
 
-	return q;
+    return q;
 }
 
 void queue_destroy(queue_t *q) {
@@ -94,9 +106,9 @@ void queue_destroy(queue_t *q) {
     DESTROY_SEM(&(q->sem_empty))
     DESTROY_SEM(&(q->sem_full))
 
-    qnode_t* cur = q->first;
+    qnode_t *cur = q->first;
     while (cur != NULL) {
-        qnode_t* next = cur->next;
+        qnode_t *next = cur->next;
         free(cur);
         cur = next;
     }
@@ -112,17 +124,10 @@ int queue_add(queue_t *q, int val) {
 
     sem_wait(&(q->sem_full));
 
-    qnode_t* new_node = create_node(val);
+    qnode_t *new_node = create_node(val);
 
     sem_wait(&(q->sem_available));
-    if (!q->first)
-		q->first = q->last = new_node;
-    else {
-		q->last->next = new_node;
-		q->last = q->last->next;
-	}
-    q->count++;
-	q->add_count++;
+    append(q, new_node);
     sem_post(&(q->sem_available));
     sem_post(&(q->sem_empty));
 
@@ -132,7 +137,7 @@ int queue_add(queue_t *q, int val) {
 int queue_get(queue_t *q, int *val) {
     sem_wait(&(q->sem_available));
     q->get_attempts++;
-	assert(q->count >= 0);
+    assert(q->count >= 0);
     sem_post(&(q->sem_available));
 
     sem_wait(&(q->sem_empty));
@@ -155,7 +160,7 @@ void queue_print_stats(queue_t *q) {
     sem_post(&(q->sem_available));
 
     printf("queue stats: current size %d; attempts: (%ld %ld %ld); counts (%ld %ld %ld)\n",
-		count,
-		add_attempts, get_attempts, add_attempts - get_attempts,
-		add_count, get_count, add_count - get_count);
+           count,
+           add_attempts, get_attempts, add_attempts - get_attempts,
+           add_count, get_count, add_count - get_count);
 }
