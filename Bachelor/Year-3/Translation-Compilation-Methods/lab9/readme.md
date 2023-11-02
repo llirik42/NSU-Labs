@@ -11,7 +11,7 @@ Folder `lingo` with `lab9.lingo` must be in root of flow9.
 Execute
 
 ```Bash
-flowcpp lab9.flow I=quotient.flow
+flowcpp main.flow
 ```
 
-from folder with `lab9.flow`.
+from folder with `main.flow`.

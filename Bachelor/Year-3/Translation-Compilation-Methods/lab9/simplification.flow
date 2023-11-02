@@ -1,0 +1,117 @@
+import expression;
+
+export {
+    simplifiedAdd(l: Exp, r: Exp) -> Exp;
+    
+    simplifiedSub(l: Exp, r: Exp) -> Exp;
+    
+    simplifiedMul(l: Exp, r: Exp) -> Exp;
+    
+    simplifiedDiv(l: Exp, r: Exp) -> Exp;
+    
+    simplifiedBinary(l: Exp, r: Exp, op: BinaryOp) -> Exp;
+    
+    simplifiedNeg(e: Exp) -> Exp;
+    
+    simplify(e: Exp) -> Exp;
+}
+
+// We'll assume that all expressions will be arithmetically correct (for example: there won't be expression "x/0")
+// That's why getValue(expression) != nan() is equivalent to the fact that there are no variables in the expression
+
+simplifiedAdd(l: Exp, r: Exp) -> Exp {
+    lValue: Quotient = getValue(l);
+    rValue: Quotient = getValue(r);
+
+    if (lValue != nan() && rValue != nan()) {
+        Const(addQuotients(lValue, rValue));
+    } else if (lValue == zero()) {
+        r;
+    } else if (rValue == zero()) {
+        l;
+    } else if (l == Neg(r) || r == Neg(l)) {
+        Int(0);
+    } else {
+        add(l, r);
+    }
+}
+
+simplifiedSub(l: Exp, r: Exp) -> Exp {
+    lValue: Quotient = getValue(l);
+    rValue: Quotient = getValue(r);
+
+    if (lValue != nan() && rValue != nan()) {
+        Const(subQuotients(lValue, rValue));
+    } else if (lValue == zero()) {
+        Neg(r);
+    } else if (rValue == zero()) {
+        l;
+    } else if (l == r) {
+        Int(0);
+    } else {
+        sub(l, r);
+    }
+}
+
+simplifiedMul(l: Exp, r: Exp) -> Exp {
+    lValue: Quotient = getValue(l);
+    rValue: Quotient = getValue(r);
+
+    if (lValue != nan() && rValue != nan()) {
+        Const(mulQuotients(lValue, rValue));
+    } else if (lValue == zero() || rValue == zero()) {
+        Int(0);
+    } else if (rValue == one()) {
+        l;
+    } else if (lValue == one()) {
+        r;
+    } else {
+        mul(l, r);
+    }
+}
+
+simplifiedDiv(l: Exp, r: Exp) -> Exp {
+    lValue: Quotient = getValue(l);
+    rValue: Quotient = getValue(r);
+
+    if (lValue != nan() && rValue != nan()) {
+        Const(divQuotients(lValue, rValue));
+    } else if (rValue == one()) {
+        l;
+    } else if (lValue == zero()) {
+        Int(0);
+    } else {
+        div(l, r);
+    }
+}
+
+simplifiedBinary(l: Exp, r: Exp, op: BinaryOp) -> Exp {
+    switch(op) {
+        AddOp(): simplifiedAdd(l, r);
+        SubOp(): simplifiedSub(l, r);
+        MulOp(): simplifiedMul(l, r);
+        DivOp(): simplifiedDiv(l, r);
+    };
+}
+
+simplifiedNeg(e: Exp) -> Exp {
+    value: Quotient = getValue(e);
+
+    if (value != nan()) {
+        Const(mulQuotients(intQuotient(-1), value));
+    } else {
+        Neg(e);
+    }
+}
+
+simplify(e: Exp) -> Exp {
+    switch(e) {
+        Neg(e1): simplifiedNeg(e1);
+        Binary(l, r, op): {
+            ls: Exp = simplify(l);
+            rs: Exp = simplify(r);
+            simplifiedBinary(ls, rs, op);
+        }
+        default: e;
+    }
+}
