@@ -120,11 +120,7 @@ int queue_add(queue_t *q, int val) {
         pthread_spin_unlock(&(q->spinlock));
         return 0;
     }
-    pthread_spin_unlock(&(q->spinlock));
-
     qnode_t *new_node = create_node(val);
-
-    pthread_spin_lock(&(q->spinlock));
     append(q, new_node);
     pthread_spin_unlock(&(q->spinlock));
 

@@ -140,13 +140,11 @@ void queue_destroy(queue_t *q) {
 
 int queue_add(queue_t *q, int val) {
     pthread_mutex_lock(&(q->mutex));
-    q->add_attempts++;
-    assert(q->count <= q->max_count);
-
     while (q->is_full) {
         pthread_cond_wait(&(q->cond_non_full), &(q->mutex));
     }
-
+    q->add_attempts++;
+    assert(q->count <= q->max_count);
     qnode_t *new_node = create_node(val);
     append(q, new_node);
     pthread_cond_signal(&(q->cond_non_empty));
@@ -157,13 +155,11 @@ int queue_add(queue_t *q, int val) {
 
 int queue_get(queue_t *q, int *val) {
     pthread_mutex_lock(&(q->mutex));
-    q->get_attempts++;
-    assert(q->count >= 0);
-
     while (q->is_empty) {
         pthread_cond_wait(&(q->cond_non_empty), &(q->mutex));
     }
-
+    q->get_attempts++;
+    assert(q->count >= 0);
     *val = pop(q);
     pthread_cond_signal(&(q->cond_non_full));
     pthread_mutex_unlock(&(q->mutex));

@@ -120,11 +120,7 @@ int queue_add(queue_t *q, int val) {
         pthread_mutex_unlock(&(q->mutex));
         return 0;
     }
-    pthread_mutex_unlock(&(q->mutex));
-
     qnode_t *new_node = create_node(val);
-
-    pthread_mutex_lock(&(q->mutex));
     append(q, new_node);
     pthread_mutex_unlock(&(q->mutex));
 
