@@ -1,0 +1,37 @@
+// Comments are supported!!
+
+# a + b -> b + a
+# a + 0 -> a
+# a + (-a) -> 0
+# (a + b) + c -> a + (b + c)
+
+# a - a -> 0
+# -(-a) -> a
+# -(b - a) -> a - b
+# a - 0 -> a
+# 0 - a -> -a
+# a + -b -> a - b
+# (a - b) + c -> a + (c - b)
+# a + (c - b) -> (a - b) + c
+
+# a * b -> b * a
+# (a * b) * c -> a * (b * c)
+# a * 1 -> a
+# a * 0 -> 0
+# a * b + a * c -> a * (b + c)
+# a * b - a * c -> a * (b - c)
+# a - b * a -> a * (1 - b)
+# b * a - a -> a * (b - 1)
+# a + a -> 2 * a
+# a + a * b -> a * (1 + b)
+# a * (-b) -> -(a * b)
+# a * (-b) -> -(a * b)
+# (-a) * b -> -(a * b)
+# (-a) * (-b) -> a * b
+
+# a / a -> 1
+# (-a) / b -> -(a / b)
+# a / (-b) -> -(a / b)
+# a * (b / a) -> b
+# (a * b) / (a * c) -> b / c
+# (-a) / (-b) -> a / b

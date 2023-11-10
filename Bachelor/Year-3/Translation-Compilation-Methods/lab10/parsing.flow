@@ -1,0 +1,34 @@
+import expression;
+import quotient;
+import lingo/pegcode/driver;
+import simplification;
+
+export {
+    ParsingResult ::= Exp, Set<SimplificationRule>;
+
+    parse(expStr: string, grammarStr: string) -> flow;
+}
+
+buildSub(xs : [flow]) {
+    fold(xs[1], xs[0], \acc, x -> Binary(acc, x, SubOp()))
+}
+
+buildDiv(xs : [flow]) {
+    fold(xs[1], xs[0], \acc, x -> Binary(acc, x, DivOp()))
+}
+
+buildRules(rs : [flow]) {
+    buildSet(rs[0]);
+}
+
+specialPegActions = {
+    t1 = setTree(defaultPegActions.t, "buildSub", buildSub);
+    t2 = setTree(t1, "buildDiv", buildDiv);
+    t3 = setTree(t2, "buildRules", buildRules);
+    SemanticActions(t3);
+}
+
+parse(expStr: string, grammarStr: string) -> flow {
+    grammar = compilePegGrammar(grammarStr);
+    parsic(grammar, expStr, specialPegActions);
+}

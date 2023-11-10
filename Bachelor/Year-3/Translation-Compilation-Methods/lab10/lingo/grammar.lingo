@@ -1,0 +1,44 @@
+exp = arithm_exp | rules_content;
+
+rules_content = comment_section rule*:rs {buildRules(:rs)} | comment_section;
+rule =  '#' exp:e1 '->' exp:e2 comment_section {SimplificationRule(:e1,:e2)};
+
+arithm_exp = ws secondpriority:e ws {:e};
+
+secondpriority = firstpriority:e1 subtrahend*:es ws '+' ws secondpriority:e2 {Binary(buildSub(:e1, :es),:e2, AddOp())} |
+                 firstpriority:e1 subtrahend*:es {buildSub(:e1, :es)};
+firstpriority = term:e1 divisor*:es ws '*' ws firstpriority:e2 {Binary(buildDiv(:e1, :es),:e2, MulOp())} | 
+                term:e1 divisor*:es {buildDiv(:e1, :es)};
+
+divisor = ws '/' ws term:e {:e};
+subtrahend = ws '-' ws firstpriority:e {:e};
+
+term = '+'? const:e {:e} |
+       '-' const:e {Neg(:e)} |
+       '+'? var:e {:e} |
+       '-' var:e {Neg(:e)} |
+       '+'? '(' exp:e ')' {:e} |
+       '-(' exp:e ')' {Neg(:e)};
+const = digit+$d {Int(s2i($d))};
+var = (letter (letter | digit)*)$n {Var(:n)};
+
+comment_section = (comment "\n"*)*;
+letter = 'a' - 'z' | 'A' - 'Z';
+digit = '0'-'9';
+ws = s*;
+s = " " | "\t" | "\n";
+
+// It was taken from grammar of flow9.
+// https://github.com/area9innovation/flow9/blob/master/tools/flowc/flow.lingo
+comment = '/' restOfComment;
+restOfComment = '*' nonstarchar_* "*/" restOfComment2?
+	| "**/" restOfComment2?
+	| '/' nonlinebreakchar_* '\n'
+	| '/\n';
+	restOfComment2 = restOfComment1* '\n';
+		restOfComment1 = ' ' | '\t';
+
+nonstarchar_ = !"*/" char_;
+nonlinebreakchar_ = !'\n' char_;
+lastLineComment = "//" nonlinebreakchar_*;
+char_ = '\u0000'-'\uFFFF';
