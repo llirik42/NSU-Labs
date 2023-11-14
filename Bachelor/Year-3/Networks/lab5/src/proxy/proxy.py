@@ -18,6 +18,7 @@ class Proxy:
     __server: Server
 
     __inputs: List[SocketLike] = []
+    __outputs: List[Connection] = []
 
     __requests: Dict[int, ClientRequest] = {}  # message_id -> ClientRequest
 
@@ -41,10 +42,13 @@ class Proxy:
         self.__logger.log_proxy_ready()
 
         while True:
-            readable, writeable, exceptional = select.select(self.__inputs, [], [])
+            readable, writeable, exceptional = select.select(self.__inputs, self.__outputs, [])
 
             if len(readable) > 0:
                 self.__handle_readable(readable[0])
+
+            if len(writeable) > 0:
+                self.__handle_writeable(writeable[0])
 
     def __handle_readable(self, r: SocketLike) -> None:
         if isinstance(r, DestinationConnection):
@@ -57,8 +61,10 @@ class Proxy:
             self.__handle_dns_resolver()
 
     def __handle_writeable(self, w: Connection) -> None:
-        if w.send() == 0:
-            self.__forget_and_close_connection(w)
+        if w.has_data_to_send:
+            w.send()
+        else:
+            self.__outputs.remove(w)
 
     def __handle_destination(self, destination: DestinationConnection) -> None:
         try:
@@ -239,6 +245,8 @@ class Proxy:
 
         client.set_destination_connection(destination)
         client.set_ready_for_sending_data_state()
+        self.__outputs.append(client)
+        self.__outputs.append(destination)
 
         reply = create_success_server_reply(
             atyp=IPV4_ADDRESS_TYPE,
@@ -282,6 +290,7 @@ class Proxy:
 
         self.__logger.log_connection_close(connection)
         self.__try_to_remove(self.__inputs, connection)
+        self.__try_to_remove(self.__outputs, connection)
         connection.close()
 
     @staticmethod

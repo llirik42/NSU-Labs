@@ -12,6 +12,10 @@ class Connection(SocketLike):
         self.__socket = client_socket
         self.__recv_count = recv_count
 
+    @property
+    def has_data_to_send(self) -> bool:
+        return len(self.__data_to_send) > 0
+
     def send(self) -> int:
         try:
             sent_count: int = self.__socket.send(self.__data_to_send)
