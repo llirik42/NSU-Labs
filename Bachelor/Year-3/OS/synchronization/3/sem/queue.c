@@ -117,11 +117,12 @@ void queue_destroy(queue_t *q) {
 }
 
 int queue_add(queue_t *q, int val) {
+    qnode_t *new_node = create_node(val);
+
+    sem_wait(&(q->sem_full));
     sem_wait(&(q->sem_available));
     q->add_attempts++;
     assert(q->count <= q->max_count);
-    sem_wait(&(q->sem_full));
-    qnode_t *new_node = create_node(val);
     append(q, new_node);
     sem_post(&(q->sem_available));
     sem_post(&(q->sem_empty));
@@ -130,10 +131,11 @@ int queue_add(queue_t *q, int val) {
 }
 
 int queue_get(queue_t *q, int *val) {
+    sem_wait(&(q->sem_empty));
+
     sem_wait(&(q->sem_available));
     q->get_attempts++;
     assert(q->count >= 0);
-    sem_wait(&(q->sem_empty));
     *val = pop(q);
     sem_post(&(q->sem_available));
     sem_post(&(q->sem_full));

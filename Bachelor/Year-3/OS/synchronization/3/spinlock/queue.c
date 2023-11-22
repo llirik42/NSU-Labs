@@ -113,14 +113,16 @@ void queue_destroy(queue_t *q) {
 }
 
 int queue_add(queue_t *q, int val) {
+    qnode_t *new_node = create_node(val);
+
     pthread_spin_lock(&(q->spinlock));
     q->add_attempts++;
     assert(q->count <= q->max_count);
     if (q->count == q->max_count) {
         pthread_spin_unlock(&(q->spinlock));
+        free(new_node);
         return 0;
     }
-    qnode_t *new_node = create_node(val);
     append(q, new_node);
     pthread_spin_unlock(&(q->spinlock));
 
