@@ -1,6 +1,6 @@
 import string;
-import parsing;
-import analysis;
+import frontend/parsing;
+import frontend/analysis;
 
 grammar = "#include lingo/grammar.lingo";
 
