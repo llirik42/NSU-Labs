@@ -1,0 +1,7 @@
+VAR x : INT;
+VAR y : BOOL;
+
+{
+    x := 0;
+    y := true;
+};

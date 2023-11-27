@@ -1,0 +1,5 @@
+VAR x : INT; VAR y : REAL;
+
+{
+    PRINT(x + y);
+};

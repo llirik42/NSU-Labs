@@ -1,0 +1,156 @@
+program = ws varDeclList:vdl ws body:b ws {Program(:vdl, :b)};
+
+body = statement;
+statement = (ws alternative:a ws ';' {:a})*:as {buildBodiesSeq(:as)};
+
+alternative = bodyTerm:t choiceElement*:es ws {buildUDChoice(:t, :es)};
+choiceElement = ws udChoiceSymbol ws bodyTerm:t {:t};
+
+bodyTerm = simpleBodyTerm:t {:t}
+    | '{' ws statement:s ws '}' {:s};
+
+simpleBodyTerm = printOperation| assignment | test | iteration;
+
+printOperation = print ws '(' ws expr:e ws ')' {Print(:e)};
+assignment = varName:n ws ":=" ws expr:e {Assignment(:n, :e)};
+test = '(' ws boolExpr:be ws ')' ws '?' {Test(:be)};
+iteration = '{' ws body:b ws '}' ws '*' {UDIteration(:b)};
+
+// Declaration of expressions
+expr = boolExpr | arithmExpr | varExpr | arrayOp | const;
+
+// Boolean expressions
+boolExpr = ws orOp:o ws {:o};
+orOp = andOp:a ws or ws orOp:o {Or(:a, :o)}
+    | andOp:a {:a};
+andOp = boolTerm:t ws and ws andOp:a {buildAnd(:t, :a)}
+    | boolTerm:t {:t};
+boolTerm = '(' ws boolTerm:t ws ')' {:t}
+    | boolTermWithoutBrackets:t {:t};
+boolTermWithoutBrackets = boolVar:t1 ws '=' ws boolVar:t2 {buildEqual(:t1, :t2)}
+    | boolVar:t1 ws '<' ws boolVar:t2 {buildLess(:t1, :t2)}
+    | boolVar:t1 ws "<=" ws boolVar:t2 {buildLessOrEqual(:t1, :t2)}
+    | boolVar:t1 ws ">" ws boolVar:t2 {buildGreater(:t1, :t2)}
+    | boolVar:t1 ws ">=" ws boolVar:t2 {buildGreaterOrEqual(:t1, :t2)}
+    | boolVar:t1 ws "<>" ws boolVar:t2 {buildNotEqual(:t1, :t2)}
+    | not ws boolTerm:t ws {Not(:t)}
+    | boolConst:c {:c};
+boolVar = arithmExpr
+    | varExpr
+    | arrayOp
+    | const;
+
+// Variable-expression
+varExpr = varName:n {Var(:n)};
+
+// Arithm expression declaration
+arithmExpr = ws secondpriority:e ws {:e};
+secondpriority = firstpriority:e1 subtrahend*:es ws '+' ws secondpriority:e2 {ArithmBinary(buildArithmSub(:e1, :es),:e2, ArithmAddOp())}
+    | firstpriority:e1 subtrahend*:es {buildArithmSub(:e1, :es)};
+firstpriority = term:e1 divisor*:es ws '*' ws firstpriority:e2 {ArithmBinary(buildArithmDiv(:e1, :es),:e2, ArithmMulOp())}
+    | term:e1 divisor*:es {buildArithmDiv(:e1, :es)};
+divisor = ws '/' ws term:e {:e};
+subtrahend = ws '-' ws firstpriority:e {:e};
+
+term = '+'? const:e {:e}
+    | '-' const:e {ArithmNeg(:e)}
+    | '+'? varExpr:e {:e}
+    | '-' varExpr:e {ArithmNeg(:e)}
+    | '+'? arrayOp:e {:e}
+    | '-' arrayOp:e {ArithmNeg(:e)}
+    | '+'? '(' ws expr:e ws ')' {:e}
+    | '-(' ws expr:e ws ')' {ArithmNeg(:e)};
+
+// Array operations declaration
+arrayOp = arrayUpdate
+    | arrayApply
+    | arrayConcat
+    | arrayLength;
+arrayUpdate = update ws '(' ws expr:a ws ',' ws expr:i ws ',' ws expr:v ws ')' {ArrayOp(:a, ArrayUpdateOpType(:i, :v))};
+arrayApply = apply ws '(' ws expr:a ws ',' ws expr:i ws ')' {ArrayOp(:a, ArrayApplyOpType(:i))};
+arrayConcat = concat ws '(' ws expr:a1 ws ',' ws expr:a2 ws ')' {ArrayOp(:a, ArrayConcatOpType(:a2))};
+arrayLength = length ws '(' ws expr:a ws ')' {ArrayOp(:e, ArrayLengthOpType())};
+
+// Constants declaration
+const = realConst
+    | intConst
+    | stringConst
+    | boolConst
+    | arrayConst;
+intConst = intNumber$d {IntConst(s2i($d))};
+stringConst = '"' (onechar*)$s '"' {StringConst(:s)};
+boolConst = true {buildTrueConst()}
+    | false {buildFalseConst()};
+realConst = (intNumber '.' posIntNumber)$s {RealConst(s2d(:s))};
+arrayConst = '[' ws ']'{buildArrayConst()}
+    | '[' ws constEnum*:cs const?:c ws ','? ws ']' {buildArrayConst(:cs, :c)};
+constEnum = const:c ws ',' ws {:c};
+
+// Variables declaration
+varDeclList = varDecl*:ds {buildVarDecls(:ds)};
+varDecl = ws var s+ varName:n ws ':' ws type:t ws ';' ws {VarDecl(:n, :t)};
+type = intType
+    | strType
+    | boolType
+    | realType
+    | arrayType;
+intType = int {Int()};
+strType = str {String()};
+boolType = bool {Bool()};
+realType = real {Real()};
+arrayType = '[' ws type:t ws ']' {Array(:t)};
+
+// keywords
+keyword = var
+    | int
+    | str
+    | bool
+    | real
+    | true
+    | false
+    | update
+    | apply
+    | concat
+    | length
+    | udChoiceSymbol
+    | print
+    | not
+    | and
+    | or;
+var = "VAR";
+int = "INT";
+str = "STR";
+bool = "BOOL";
+real = "REAL";
+true = "true";
+false = "false";
+update = "UPD";
+apply = "APP";
+concat = "CONCAT";
+length = "LENGTH";
+udChoiceSymbol = "U";
+print = "PRINT";
+not = "NOT";
+and = "AND";
+or = "OR";
+
+// Basic symbols
+varName = !keyword (letter (letter | digit)*)$n {:n};
+intNumber = '-'? posIntNumber;
+posIntNumber = digit+;
+letter = 'a' - 'z' | 'A' - 'Z';
+digit = '0'-'9';
+ws = s*;
+s = ' ' | '\t' | '\n';
+
+// Took it from https://github.com/area9innovation/flow9/blob/master/tools/flowc/flow.lingo
+onechar = "\\u" hexdigit hexdigit hexdigit hexdigit
+    | "\\X" hexdigit hexdigit hexdigit hexdigit
+	| "\\x" hexdigit hexdigit
+	| '\\' escapedchar
+	| !'"' !'\\' char;
+hexdigit = digit
+	| 'a'-'f'
+	| 'A'-'F';
+escapedchar = "\\" | '"' | "n" | "t" | "r";
+char = '\u0000'-'\uFFFF';

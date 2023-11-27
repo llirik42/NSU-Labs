@@ -1,0 +1,89 @@
+import string;
+import parsing;
+import analysis;
+
+grammar = "#include lingo/grammar.lingo";
+
+launchParsingTests() {
+    tests = [
+        "#include nemo/tests/syntax/arithm.nemo",
+        "#include nemo/tests/syntax/array_ops.nemo",
+        "#include nemo/tests/syntax/assignment1.nemo",
+        "#include nemo/tests/syntax/assignment2.nemo",
+        "#include nemo/tests/syntax/assignment3.nemo",
+        "#include nemo/tests/syntax/boolean_expr.nemo",
+        "#include nemo/tests/syntax/choice.nemo",
+        "#include nemo/tests/syntax/constants.nemo",
+        "#include nemo/tests/syntax/empty.nemo",
+        "#include nemo/tests/syntax/iteration.nemo",
+        "#include nemo/tests/syntax/lot_of_vars.nemo",
+        "#include nemo/tests/syntax/nested1.nemo",
+        "#include nemo/tests/syntax/nested2.nemo",
+        "#include nemo/tests/syntax/nested3.nemo",
+        "#include nemo/tests/syntax/print.nemo",
+        "#include nemo/tests/syntax/redecl1.nemo",
+        "#include nemo/tests/syntax/redecl2.nemo",
+        "#include nemo/tests/syntax/single_int.nemo",
+        "#include nemo/tests/syntax/test.nemo",
+        "#include nemo/tests/syntax/from_lectures.nemo"
+    ];
+
+    fori(0, length(tests) - 1, \i -> {
+        println("Test " + i2s(i + 1));
+
+        p = parse(tests[i], grammar);
+
+        if (p != flow("PARSING FAILED")) {
+            println("PASSED");
+        }
+        println("\n");
+    });
+}
+
+launchAnalysisTests() {
+    tests = [
+        Pair("#include nemo/tests/syntax/arithm.nemo", InvalidTypeError(Var("y"))),
+        Pair("#include nemo/tests/syntax/array_ops.nemo", AssignmentToUndeclaredVarError("x")),
+        Pair("#include nemo/tests/syntax/assignment1.nemo", AssignmentToUndeclaredVarError("x")),
+        Pair("#include nemo/tests/syntax/assignment2.nemo", Success()),
+        Pair("#include nemo/tests/syntax/assignment3.nemo", Success()),
+        Pair("#include nemo/tests/syntax/boolean_expr.nemo", Success()),
+        Pair("#include nemo/tests/syntax/choice.nemo", AssignmentToUndeclaredVarError("x")),
+        Pair("#include nemo/tests/syntax/constants.nemo", Success()),
+        Pair("#include nemo/tests/syntax/empty.nemo", Success()),
+        Pair("#include nemo/tests/syntax/iteration.nemo", Success()),
+        Pair("#include nemo/tests/syntax/lot_of_vars.nemo", Success()),
+        Pair("#include nemo/tests/syntax/nested1.nemo", AssignmentToUndeclaredVarError("x")),
+        Pair("#include nemo/tests/syntax/nested2.nemo", AssignmentToUndeclaredVarError("x")),
+        Pair("#include nemo/tests/syntax/nested3.nemo", AssignmentToUndeclaredVarError("x")),
+        Pair("#include nemo/tests/syntax/print.nemo", InvalidTypeError(Var("x"))),
+        Pair("#include nemo/tests/syntax/redecl1.nemo", RedeclarationError("x")),
+        Pair("#include nemo/tests/syntax/redecl2.nemo", RedeclarationError("x")),
+        Pair("#include nemo/tests/syntax/single_int.nemo", Success()),
+        Pair("#include nemo/tests/syntax/test.nemo", Success()),
+        Pair("#include nemo/tests/syntax/from_lectures.nemo", Success()),
+        Pair("#include nemo/tests/analysis/simple.nemo", Success()),
+        Pair("#include nemo/tests/analysis/undefined_var.nemo", InvalidTypeError(Var("y"))),
+        Pair("#include nemo/tests/analysis/mixed_arithm.nemo", InvalidTypeError(ArithmBinary(Var("x"), Var("y"), ArithmAddOp()))),
+        Pair("#include nemo/tests/analysis/mismatch.nemo", AssignmentTypesMismatchError(Assignment("x", Var("y")))),
+        Pair("#include nemo/tests/analysis/complex_array.nemo", Success()),
+    ];
+
+    fori(0, length(tests) - 1, \i -> {
+        p = parse(tests[i].first, grammar);
+        res = analyse(p);
+        if (res != tests[i].second) {
+            println("Test " + i2s(i + 1));
+            println("FAILED");
+            println(res);
+            println(analysisResult2s(res));
+            println("\n");
+        }
+    });
+}
+
+main() {
+    // launchParsingTests();
+    launchAnalysisTests();
+    quit(0);
+}

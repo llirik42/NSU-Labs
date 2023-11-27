@@ -1,0 +1,311 @@
+import grammar;
+import ds/tree;
+import ds/set;
+
+export {
+    Success : ();
+    RedeclarationError : (varName : string);
+    InvalidTypeError : (e : Expr);
+    AssignmentToUndeclaredVarError : (varName : string);
+    InvalidTestConditionError : (testCond : Expr);
+    AssignmentTypesMismatchError : (a : Assignment);
+    AnalysisResult ::= Success, RedeclarationError, InvalidTypeError, AssignmentToUndeclaredVarError, InvalidTestConditionError, AssignmentTypesMismatchError;
+    analysisResult2s(res : AnalysisResult) -> string;
+
+    analyse(program : Program) -> AnalysisResult;
+}
+
+analysisResult2s(res : AnalysisResult) -> string {
+    switch (res) {
+        Success() : "Success";
+
+        InvalidTypeError(e) : "Cannot define type of " + expr2s(e);
+
+        RedeclarationError(varName) : "Redeclaration of : " + varName;
+
+        AssignmentToUndeclaredVarError(varName) : "Assignment to undeclared variable : " + varName;
+
+        InvalidTestConditionError(testCond) : "Invalid condition of test : " + expr2s(testCond);
+    
+        AssignmentTypesMismatchError(a) : "Mismatch of types : " + a.varName + " and " + expr2s(a.expr);
+    }
+}
+
+getDeclaredVariables(program : Program) -> Tree<string, [VarDecl]> {
+    fold(
+        program.varDeclList.elements,
+        makeTree(),
+        \acc, decl -> treePushToArrayValue(acc, decl.name, decl)
+    );
+}
+
+analyseDeclaredVariables(declaredVariables : Tree<string, [VarDecl]>) -> AnalysisResult {
+    foldTree(
+        declaredVariables,
+        Success(),
+        \varName, decls, acc -> {
+            if (acc != Success()) {
+                acc;
+            } else {
+                if (length(decls) > 1) {
+                    RedeclarationError(varName);
+                } else {
+                    Success();
+                }
+            }
+    });
+}
+
+calculateTypeOfConst(c : Const) -> ExprType {
+    switch (c) {
+        IntConst(value) : Int();
+        StringConst(value) : String();
+        BoolConst(value) : Bool();
+        RealConst(value) : Real();
+        ArrayConst(values) : {
+            elementsTypes = map(values, \v -> calculateTypeOfConst(v));
+
+            // If element of array-constant cannot have type
+            if (contains(elementsTypes, NoType())) {
+                NoType();
+            } else {
+                // If elements have different types
+                if (countA(elementsTypes, \e -> e == elementsTypes[0]) != length(elementsTypes)) {
+                    NoType();
+                } else {
+                    // All elements have same type so we can return type of first element
+                    Array(elementsTypes[0]);
+                }
+            }
+        }
+    }
+}
+
+isTypeNumeric(t : ExprType) -> bool {
+    t == Int() || t == Real();
+}
+
+calculateTypeOfArithmExpr(a : ArithmExpr, variablesTypes : Tree<string, ExprType>) -> ExprType {
+    switch (a) {
+        ArithmBinary(l, r, op) : {
+            lType = calculateTypeOfExpr(l, variablesTypes);
+            rType = calculateTypeOfExpr(r, variablesTypes);
+
+            // If at least one operand cannot have type of types of operands are not the same or types are not numeric
+            if (lType == NoType() || rType == NoType() || lType != rType || !isTypeNumeric(lType)) {
+                NoType();
+            } else {
+                lType; // rType and lType are the same numeric types so we can return any of them
+            }
+        }
+        
+        ArithmNeg(e) : {
+            eType = calculateTypeOfExpr(e, variablesTypes);
+            if (!isTypeNumeric(eType)) {
+                NoType();
+            } else {
+                eType;
+            }
+        }
+    }
+}
+
+isArrayType(t : ExprType) -> bool {    
+    switch (t) {
+        Array(baseType) : true;
+        default : false;
+    }
+}
+
+calculateTypeOfArrayOp(op : ArrayOp, variablesTypes : Tree<string, ExprType>) -> ExprType {
+    // We cannot perform an operation not on an array
+    firstOperand = op.arr;
+    firstOperandType = calculateTypeOfExpr(firstOperand, variablesTypes);
+
+    switch (firstOperandType) {
+        Array(baseType) : {
+            switch (op.opType) {
+                ArrayUpdateOpType(ind, val) : {
+                    indType = calculateTypeOfExpr(ind, variablesTypes);
+                    valType = calculateTypeOfExpr(val, variablesTypes);
+                    if (indType != Int() || valType != baseType) {
+                        NoType();
+                    } else {
+                        firstOperandType;
+                    }
+                }
+
+                ArrayApplyOpType(ind) : {
+                    if (calculateTypeOfExpr(ind, variablesTypes) != Int()) {
+                        NoType();
+                    } else {
+                        baseType;
+                    }
+                }
+
+                ArrayConcatOpType(arr2) : {
+                    secondOperandType = calculateTypeOfExpr(arr2, variablesTypes);
+                    if (!isArrayType(secondOperandType) || firstOperandType != secondOperandType) {
+                        NoType();
+                    } else {
+                        firstOperandType;
+                    }
+                }
+
+                ArrayLengthOpType() : Int();
+            }
+        }
+
+        default : NoType();
+    }
+}
+
+isBooleanExprCorrect(b : BooleanExpr, variablesTypes : Tree<string, ExprType>) -> bool {
+    switch (b) {
+        Comparison(l, r, cmpType) : {
+            lType = calculateTypeOfExpr(l, variablesTypes);
+            rType = calculateTypeOfExpr(r, variablesTypes);
+
+            // If operands don't have type or have different types
+            if (lType == NoType() || rType == NoType() || lType != rType) {
+                false;
+            } else {
+                switch (cmpType) {
+                    Less() : isTypeNumeric(lType);
+                    Equal() : true;
+                }
+            }
+        }
+
+        Not(e) : isBooleanExprCorrect(e, variablesTypes);
+
+        Or(l, r) : isBooleanExprCorrect(l, variablesTypes) && isBooleanExprCorrect(r, variablesTypes);
+
+        BoolConst(value) : true;
+    }
+}
+
+calculateTypeOfExpr(e : Expr, variablesTypes : Tree<string, ExprType>) -> ExprType {
+    switch (e) {
+        Var(name) : lookupTreeDef(variablesTypes, name, NoType());
+    
+        NonBoolConst() : calculateTypeOfConst(e);
+    
+        ArithmExpr() : calculateTypeOfArithmExpr(e, variablesTypes);
+
+        ArrayOp(arr, opType) : calculateTypeOfArrayOp(e, variablesTypes);
+
+        BooleanExpr() : {
+            if (isBooleanExprCorrect(e, variablesTypes)) {
+                Bool();
+            } else {
+                NoType();
+            }
+        }
+    }
+}
+
+analyseType(e : Expr, et : ExprType) -> AnalysisResult {
+    if (et == NoType()) {
+        InvalidTypeError(e);
+    } else {
+        Success();
+    }
+}
+
+analyseExpr(e : Expr, variablesTypes : Tree<string, ExprType>) -> AnalysisResult {
+    analyseType(e, calculateTypeOfExpr(e, variablesTypes));
+}
+
+analyseAssignment(a : Assignment, variablesTypes : Tree<string, ExprType>) -> AnalysisResult {
+    varName = a.varName;
+    expr = a.expr;
+
+    varType = lookupTreeDef(variablesTypes, varName, NoType());
+
+    // Variable isn't declared
+    if (varType == NoType()) {
+        AssignmentToUndeclaredVarError(varName);
+    } else {
+        exprType = calculateTypeOfExpr(expr, variablesTypes);
+
+        if (exprType == NoType()) {
+            analyseType(expr, exprType);
+        } else {
+            if (exprType != varType) {
+                AssignmentTypesMismatchError(a);
+            } else {
+                Success();
+            }
+        }
+    }
+}
+
+analyseTest(t : Test, variablesTypes : Tree<string, ExprType>) -> AnalysisResult {
+    testContent = t.be;
+    testContentType = calculateTypeOfExpr(testContent, variablesTypes);
+    
+    tmp = analyseType(testContent, testContentType);
+
+    if (tmp != Success()) {
+        tmp;
+    } else {
+        if (testContentType != Bool()) {
+            InvalidTestConditionError(testContent);
+        } else {
+            Success();
+        }
+    }
+}
+
+analysePrint(p : Print, variablesTypes : Tree<string, ExprType>) -> AnalysisResult {
+    analyseExpr(p.e, variablesTypes);
+}
+
+analyseBodies(bodies : [Body], variablesTypes : Tree<string, ExprType>) -> AnalysisResult {
+    fold(bodies, Success(), \acc, b -> {
+        if (acc != Success()) {
+            acc;
+        } else {
+            res = analyseBody(b, variablesTypes);
+            if (res != Success()) {
+                res;
+            } else {
+                Success();
+            }
+        }
+    });
+}
+
+analyseBody(body : Body, variablesTypes : Tree<string, ExprType>) -> AnalysisResult {    
+    switch (body) {
+        Assignment(varName, expr) : analyseAssignment(body, variablesTypes);
+
+        BodiesSeq(bodies) : analyseBodies(bodies, variablesTypes);
+
+        Test(be) : analyseTest(body, variablesTypes);
+
+        Print(expr) : analysePrint(body, variablesTypes);
+
+        UDChoice(bodies) : analyseBodies(bodies, variablesTypes);
+
+        UDIteration(b) : analyseBody(b, variablesTypes);
+    }
+}
+
+analyse(program : Program) -> AnalysisResult {
+    declaredVariables = getDeclaredVariables(program);
+
+    res1 = analyseDeclaredVariables(declaredVariables);
+
+    if (res1 != Success()) {
+        res1;
+    } else {
+        variablesTypes = foldTree(
+            declaredVariables,
+            makeTree(),
+            \varName, decls, acc -> setTree(acc, varName, decls[0].type)
+        );
+        analyseBody(program.body, variablesTypes);
+    }
+}

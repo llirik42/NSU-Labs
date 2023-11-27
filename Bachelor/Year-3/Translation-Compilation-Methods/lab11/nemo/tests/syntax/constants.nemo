@@ -1,0 +1,12 @@
+VAR x1 : INT; VAR x2 : REAL; VAR x3 : STR; VAR x31 : STR; VAR x4 : BOOL; VAR x5 : BOOL; VAR x6 : [INT]; VAR x7 : [[INT]];
+
+{
+    x1 := -123;
+    x2 := -4.51;
+    x3 := "Hello, world!\n";
+    x31 := "";
+    x4 := true;
+    x5 := false;
+    x6 := [1, 2, 3];
+    x7 := [[1, 2], [2, 3], [5, 6]];
+};

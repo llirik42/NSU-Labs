@@ -1,0 +1,5 @@
+VAR x : INT; VAR a : [INT]; VAR s : STR; VAR r : REAL; VAR b : BOOL; VAR aaa : [[[INT]]]; 
+
+{
+
+};

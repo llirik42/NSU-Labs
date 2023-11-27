@@ -1,0 +1,165 @@
+import string;
+import ds/array;
+import maybe;
+
+export {    
+    // Variable types
+    Int : ();
+    String : ();
+    Bool : ();
+    Real : ();
+    Array : (baseType : ExprType);
+    NoType : ();
+    ExprType ::= Int, String, Bool, Real, Array, NoType;
+
+    // Declaration of variables
+    VarDecl : (name : string, type : ExprType);
+    VarDeclList : (elements : [VarDecl]);
+    
+    // Variables
+    Var : (name : string);
+    
+    // Constants
+    IntConst : (value: int);
+    StringConst : (value : string);
+    BoolConst : (value : bool);
+    RealConst : (value : double);
+    ArrayConst : (values : [Const]);
+    NonBoolConst ::= IntConst, StringConst, RealConst, ArrayConst;
+    Const ::= NonBoolConst, BoolConst;
+    
+    // Binary arithmetic operations
+    ArithmAddOp : ();
+    ArithmSubOp : ();
+    ArithmMulOp : ();
+    ArithmDivOp : ();
+    ArithmBinaryOp ::= ArithmAddOp, ArithmSubOp, ArithmMulOp, ArithmDivOp;
+
+    // Arithmetic negation
+    ArithmNegOp : ();
+    ArithmOp ::= ArithmBinaryOp, ArithmNegOp;
+
+    // Arithmetic expressions
+    ArithmBinary : (l : Expr, r : Expr, op : ArithmBinaryOp);
+    ArithmNeg : (e : Expr);
+    ArithmExpr ::= ArithmBinary, ArithmNeg;
+
+    // Boolean expressions
+    Equal : ();
+    Less : ();
+    ComparisonType ::= Equal, Less;
+    Comparison : (l : Expr, r : Expr, comparisonType : ComparisonType);
+
+    Not : (e : BooleanExpr);
+    Or : (l : BooleanExpr, r : BooleanExpr);
+    
+    BooleanExpr ::= Comparison, Not, Or, BoolConst;
+    
+    // Array operations
+    ArrayUpdateOpType : (ind : Expr, val : Expr);
+    ArrayApplyOpType : (ind : Expr);
+    ArrayConcatOpType : (arr2 : Expr);
+    ArrayLengthOpType : ();
+    ArrayOpType ::= ArrayUpdateOpType, ArrayApplyOpType, ArrayConcatOpType, ArrayLengthOpType;
+    ArrayOp : (arr : Expr, opType : ArrayOpType);
+
+    // Expressions
+    Expr ::= Var, Const, ArithmExpr, ArrayOp, BooleanExpr;
+    expr2s(e : Expr) -> string;
+
+    Assignment : (varName : string, expr : Expr);
+    BodiesSeq : (bodies : [Body]);
+    Test : (be : BooleanExpr);
+    Print : (e : Expr);
+    UDChoice : (bodies : [Body]);
+    UDIteration : (body : Body);
+    Body ::= Assignment, BodiesSeq, Test, UDChoice, UDIteration, Print;
+
+    Program : (varDeclList : VarDeclList, body : Body);
+}
+
+boolConst2s(b : BoolConst) -> string {
+    b2s(b.value);
+}
+
+const2s(c : Const) -> string {
+    switch (c) {
+        IntConst(value) : i2s(value);
+        StringConst(value) : "\"" + value + "\"";
+        BoolConst(value) : boolConst2s(c);
+        RealConst(value) : d2s(value);
+        ArrayConst(values) : {
+            if (length(values) == 0) {
+                "[]";
+            } else {
+                head = subrange(values, 0, length(values) - 1);
+                last = values[length(values) - 1];
+
+                "[" + fold(head, "", \acc, v -> {
+                    acc + const2s(v) + ", ";
+                }) + const2s(last) + "]";
+            }
+        }
+    }
+}
+
+arithmExpr2s(ae : ArithmExpr) -> string {
+    withoutBrackets = switch (ae) {
+        ArithmBinary(l, r, op) : {
+            ls = expr2s(l);
+            rs = expr2s(r);
+            
+            switch (op) {
+                ArithmAddOp() : ls + " + " + rs;
+                ArithmSubOp() : ls + " - " + rs;
+                ArithmMulOp() : ls + " * " + rs;
+                ArithmDivOp() : ls + " / " + rs;
+            }
+        }
+        
+        ArithmNeg(e) : "-" + expr2s(e);
+    }
+
+    "(" + withoutBrackets + ")";
+}
+
+arrayOp2s(arrayOp : ArrayOp) -> string {
+    arr = arrayOp.arr;
+    arrRepr = expr2s(arr);
+
+    switch (arrayOp.opType) {
+        ArrayUpdateOpType(ind, val) : "UPD(" + arrRepr + ", " + expr2s(ind) + ", " + expr2s(val) + ")";
+
+        ArrayApplyOpType(ind) : "APP(" + arrRepr + ", " + expr2s(ind) + ")";
+
+        ArrayConcatOpType(arr2) : "CONCAT(" + arrRepr + ", " + expr2s(arr2) + ")";
+
+        ArrayLengthOpType() : "LENGTH(" + arrRepr + ")";
+    }
+}
+
+comparisonType2s(ct : ComparisonType) -> string {
+    switch (ct) {
+        Equal() : " = ";
+        Less() : " < ";
+    }
+}
+
+booleanExpr2s(be : BooleanExpr) -> string {
+    switch (be) {
+        Comparison(l, r, ct) : expr2s(l) + comparisonType2s(ct) + expr2s(r);
+        Not(e) : "NOT(" + booleanExpr2s(e) + ")";
+        Or(l, r) : "(" + booleanExpr2s(l) + ")" + " OR " + "(" + booleanExpr2s(r) + ")";
+        BoolConst(value) : boolConst2s(be);
+    }
+}
+
+expr2s(e : Expr) -> string {
+    switch (e) {
+        Var(name) : name;
+        NonBoolConst() : const2s(e);
+        ArithmExpr() : arithmExpr2s(e);
+        ArrayOp(arr, opType) : arrayOp2s(e);
+        BooleanExpr() : booleanExpr2s(e);
+    }
+}
