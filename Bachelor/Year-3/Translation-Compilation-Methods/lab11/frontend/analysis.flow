@@ -7,9 +7,8 @@ export {
     RedeclarationError : (varName : string);
     InvalidTypeError : (e : Expr);
     AssignmentToUndeclaredVarError : (varName : string);
-    InvalidTestConditionError : (testCond : Expr);
     AssignmentTypesMismatchError : (a : Assignment);
-    AnalysisResult ::= Success, RedeclarationError, InvalidTypeError, AssignmentToUndeclaredVarError, InvalidTestConditionError, AssignmentTypesMismatchError;
+    AnalysisResult ::= Success, RedeclarationError, InvalidTypeError, AssignmentToUndeclaredVarError, AssignmentTypesMismatchError;
     analysisResult2s(res : AnalysisResult) -> string;
 
     analyse(program : Program) -> AnalysisResult;
@@ -24,8 +23,6 @@ analysisResult2s(res : AnalysisResult) -> string {
         RedeclarationError(varName) : "Redeclaration of : " + varName;
 
         AssignmentToUndeclaredVarError(varName) : "Assignment to undeclared variable : " + varName;
-
-        InvalidTestConditionError(testCond) : "Invalid condition of test : " + expr2s(testCond);
     
         AssignmentTypesMismatchError(a) : "Mismatch of types : " + a.varName + " and " + expr2s(a.expr);
     }
@@ -242,20 +239,7 @@ analyseAssignment(a : Assignment, variablesTypes : Tree<string, ExprType>) -> An
 }
 
 analyseTest(t : Test, variablesTypes : Tree<string, ExprType>) -> AnalysisResult {
-    testContent = t.be;
-    testContentType = calculateTypeOfExpr(testContent, variablesTypes);
-    
-    tmp = analyseType(testContent, testContentType);
-
-    if (tmp != Success()) {
-        tmp;
-    } else {
-        if (testContentType != Bool()) {
-            InvalidTestConditionError(testContent);
-        } else {
-            Success();
-        }
-    }
+    analyseExpr(t.be, variablesTypes);
 }
 
 analysePrint(p : Print, variablesTypes : Tree<string, ExprType>) -> AnalysisResult {
