@@ -2,10 +2,6 @@
 
 Implement a NeMo parser.
 
-# Usage
-
-Folders `lingo` and `nemo` must be in root of flow9.
-
 # Execution
 
 Execute
@@ -15,3 +11,5 @@ flowcpp main.flow
 ```
 
 from folder with `main.flow`.
+
+> Folders `lingo` and `nemo` must be in root of flow9.
