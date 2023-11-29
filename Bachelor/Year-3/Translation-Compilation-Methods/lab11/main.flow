@@ -29,15 +29,15 @@ launchParsingTests() {
         "#include nemo/tests/syntax/from_lectures.nemo"
     ];
 
+    println("STARTING PARSING TESTS ...");
+
     fori(0, length(tests) - 1, \i -> {
-        println("Test " + i2s(i + 1));
-
         p = parse(tests[i], grammar);
-
-        if (p != flow("PARSING FAILED")) {
-            println("PASSED");
+        if (p == flow("PARSING FAILED")) {
+            println("Test " + i2s(i + 1));
+            println("FAILED");
+            println("\n");
         }
-        println("\n");
     });
 }
 
@@ -70,6 +70,8 @@ launchAnalysisTests() {
         Pair("#include nemo/tests/analysis/complex_array.nemo", Success()),
         Pair("#include nemo/tests/analysis/inv_cond.nemo", InvalidTypeError(Not(Comparison(RealConst(1.1), IntConst(2), Less())))),
     ];
+
+    println("STARTING ANALYSIS TESTS ...");
 
     fori(0, length(tests) - 1, \i -> {
         p = parse(tests[i].first, grammar);
