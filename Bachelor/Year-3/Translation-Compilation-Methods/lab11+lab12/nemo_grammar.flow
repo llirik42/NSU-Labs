@@ -1,6 +1,5 @@
 import string;
-import ds/array;
-import maybe;
+import ds/tree;
 
 export {    
     // Variable types
@@ -8,14 +7,17 @@ export {
     String : ();
     Bool : ();
     Real : ();
-    Array : (baseType : ExprType);
     NoType : ();
-    ExprType ::= Int, String, Bool, Real, Array, NoType;
+    AnyType : ();
+    Array : (baseType : ExprType);
+    VarType ::= Int, String, Bool, Real, Array;
+    ExprType ::= VarType, NoType, AnyType;
 
     // Declaration of variables
-    VarDecl : (name : string, type : ExprType);
+    VarDecl : (name : string, type : VarType);
     VarDeclList : (elements : [VarDecl]);
-    
+    varDeclList2s(vdl : VarDeclList) -> string;
+
     // Variables
     Var : (name : string);
     
@@ -24,10 +26,11 @@ export {
     StringConst : (value : string);
     BoolConst : (value : bool);
     RealConst : (value : double);
-    ArrayConst : (values : [Const]);
+    ArrayConst : (values : Tree<int, Const>); // So we can execute for example UPD([], 10, 10).
     NonBoolConst ::= IntConst, StringConst, RealConst, ArrayConst;
     Const ::= NonBoolConst, BoolConst;
-    
+    const2s(c : Const) -> string;
+
     // Binary arithmetic operations
     ArithmAddOp : ();
     ArithmSubOp : ();
@@ -75,7 +78,75 @@ export {
     UDIteration : (body : Body);
     Body ::= Assignment, BodiesSeq, Test, UDChoice, UDIteration, Print;
 
-    Program : (varDeclList : VarDeclList, body : Body);
+    NemoProgram : (varDeclList : VarDeclList, body : Body);
+}
+
+// Utils
+doRange(len : int, acc : [int], index : int) -> [int] {
+    if (index == len) {
+        acc;
+    } else {
+        doRange(len, arrayPush(acc, index), index + 1);
+    }
+}
+
+range(maxIndex : int) -> [int] {
+    doRange(maxIndex + 1, [], 0);
+}
+
+
+constTree2s(t : Tree<int, Const>) -> string {
+    switch (popmax(t)) {
+        // Tree is empty
+        EmptyPopResult() : "[]";
+        
+        // Tree is non-empty
+        PopResult(resK, resV, rest) : {
+            maxIndex = resK;
+            r = range(maxIndex);
+            l = foldi(
+                range(maxIndex),
+                "",
+                \i, acc, e -> {
+                    curConst = lookupTree(t, e);
+                    curConstRepr = eitherMap(curConst, const2s, "__");
+                    
+                    tmp = acc + curConstRepr;
+
+                    if (i == maxIndex) {
+                        tmp;
+                    } else {
+                        tmp + ", ";
+                    }
+                }
+            );
+
+            "[" + l + "]";
+        }
+    };
+}
+
+
+exprType2s(t : ExprType) -> string {
+    switch (t) {
+        Int() : "INT";
+        String() : "STR";
+        Bool() : "BOOL";
+        Real() : "REAL";
+        Array(baseType) : "[" + exprType2s(baseType) + "]";
+        NoType() : "<No type>";
+        AnyType() : "<Any type>";
+    }
+}
+
+varDecl2s(vd: VarDecl) -> string {
+    "VAR " + vd.name + " : " + exprType2s(vd.type) + ";";
+}
+
+varDeclList2s(vdl : VarDeclList) -> string {
+    fold(vdl.elements, "", \s, d -> {
+        s + varDecl2s(d) + "\n";
+    })
 }
 
 boolConst2s(b : BoolConst) -> string {
@@ -88,18 +159,7 @@ const2s(c : Const) -> string {
         StringConst(value) : "\"" + value + "\"";
         BoolConst(value) : boolConst2s(c);
         RealConst(value) : d2s(value);
-        ArrayConst(values) : {
-            if (length(values) == 0) {
-                "[]";
-            } else {
-                head = subrange(values, 0, length(values) - 1);
-                last = values[length(values) - 1];
-
-                "[" + fold(head, "", \acc, v -> {
-                    acc + const2s(v) + ", ";
-                }) + const2s(last) + "]";
-            }
-        }
+        ArrayConst(values) : constTree2s(values);
     }
 }
 

@@ -1,0 +1,13 @@
+VAR n: INT; VAR x: INT; VAR y: INT; {
+    {
+        x := x + 1;
+        PRINT(x);
+    } 
+
+    U
+
+    {
+        x := x - 1;
+        PRINT(x);
+    };
+};

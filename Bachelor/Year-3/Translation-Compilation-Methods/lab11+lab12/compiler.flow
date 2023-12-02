@@ -1,9 +1,7 @@
-import string;
-import frontend/parsing;
-import frontend/analysis;
-import backend/translation;
-
-grammar = "#include lingo/grammar.lingo";
+import compiler/frontend/parsing;
+import compiler/frontend/analysis;
+import compiler/backend/translation;
+import sys/system;
 
 launchParsingTests() {
     tests = [
@@ -32,7 +30,7 @@ launchParsingTests() {
     println("STARTING PARSING TESTS ...");
 
     fori(0, length(tests) - 1, \i -> {
-        p = parse(tests[i], grammar);
+        p = parse(tests[i]);
         if (p == flow("PARSING FAILED")) {
             println("Test " + i2s(i + 1));
             println("FAILED");
@@ -69,12 +67,13 @@ launchAnalysisTests() {
         Pair("#include nemo/tests/analysis/mismatch.nemo", AssignmentTypesMismatchError(Assignment("x", Var("y")))),
         Pair("#include nemo/tests/analysis/complex_array.nemo", Success()),
         Pair("#include nemo/tests/analysis/inv_cond.nemo", InvalidTypeError(Not(Comparison(RealConst(1.1), IntConst(2), Less())))),
+        Pair("#include nemo/tests/analysis/tricky_arrays.nemo", Success())
     ];
 
     println("STARTING ANALYSIS TESTS ...");
 
     fori(0, length(tests) - 1, \i -> {
-        p = parse(tests[i].first, grammar);
+        p = parse(tests[i].first);
         res = analyse(p);
         if (res != tests[i].second) {
             println("Test " + i2s(i + 1));
@@ -87,7 +86,18 @@ launchAnalysisTests() {
 }
 
 main() {
-    launchParsingTests();
-    launchAnalysisTests();
+    // launchParsingTests();
+    // launchAnalysisTests();
+
+    program = parse("#include nemo/program.nemo");
+    result = analyse(program);
+    if (result != Success()) {
+        println(analysisResult2s(result));
+    } else {
+        if (!setFileContent("/home/llirik42/flow9/nemo/program.out", translate(program))) {
+            println("Cannot create file \"/home/llirik42/flow9/nemo/program.out\"");
+        }
+    }
+    
     quit(0);
 }

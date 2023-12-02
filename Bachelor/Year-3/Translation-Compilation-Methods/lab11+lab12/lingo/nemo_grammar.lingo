@@ -1,16 +1,12 @@
-program = ws varDeclList:vdl ws body:b ws {Program(:vdl, :b)};
+program = ws varDeclList:vdl ws body:b ws {NemoProgram(:vdl, :b)};
 
 body = statement;
 statement = (ws alternative:a ws ';' {:a})*:as {buildBodiesSeq(:as)};
-
 alternative = bodyTerm:t choiceElement*:es ws {buildUDChoice(:t, :es)};
 choiceElement = ws udChoiceSymbol ws bodyTerm:t {:t};
-
 bodyTerm = simpleBodyTerm:t {:t}
     | '{' ws statement:s ws '}' {:s};
-
 simpleBodyTerm = printOperation| assignment | test | iteration;
-
 printOperation = print ws '(' ws expr:e ws ')' {Print(:e)};
 assignment = varName:n ws ":=" ws expr:e {Assignment(:n, :e)};
 test = '(' ws boolExpr:be ws ')' ws '?' {Test(:be)};
@@ -25,15 +21,16 @@ orOp = andOp:a ws or ws orOp:o {Or(:a, :o)}
     | andOp:a {:a};
 andOp = boolTerm:t ws and ws andOp:a {buildAnd(:t, :a)}
     | boolTerm:t {:t};
-boolTerm = '(' ws boolTerm:t ws ')' {:t}
-    | boolTermWithoutBrackets:t {:t};
+boolTerm = boolTermWithoutBrackets:t {:t}
+    | '(' ws boolTerm:t ws ')' {:t};
 boolTermWithoutBrackets = boolVar:t1 ws '=' ws boolVar:t2 {buildEqual(:t1, :t2)}
     | boolVar:t1 ws '<' ws boolVar:t2 {buildLess(:t1, :t2)}
     | boolVar:t1 ws "<=" ws boolVar:t2 {buildLessOrEqual(:t1, :t2)}
     | boolVar:t1 ws ">" ws boolVar:t2 {buildGreater(:t1, :t2)}
     | boolVar:t1 ws ">=" ws boolVar:t2 {buildGreaterOrEqual(:t1, :t2)}
     | boolVar:t1 ws "<>" ws boolVar:t2 {buildNotEqual(:t1, :t2)}
-    | not ws boolTerm:t ws {Not(:t)}
+    | not ws boolExpr:e {Not(:e)}
+    | '(' ws boolExpr:e ws ')' {:e}
     | boolConst:c {:c};
 boolVar = arithmExpr
     | varExpr

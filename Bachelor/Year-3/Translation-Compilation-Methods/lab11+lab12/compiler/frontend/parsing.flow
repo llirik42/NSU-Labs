@@ -1,9 +1,8 @@
-import grammar;
 import lingo/pegcode/driver;
-import math/math;
+import nemo_grammar;
 
 export {
-    parse(programString: string, grammarString: string) -> flow;
+    parse(programString: string) -> flow;
 }
 
 buildVarDecls(a : [flow]) {
@@ -20,9 +19,11 @@ buildFalseConst(a : [flow]) {
 
 buildArrayConst(a : [flow]) {
     if (length(a) == 0) {
-        ArrayConst([]);
+        ArrayConst(makeTree());
     } else {
-        ArrayConst(concat(a[0], a[1]));
+        values = concat(a[0], a[1]);
+        treeOfValues = foldi(values, makeTree(), \i, acc, v -> setTree(acc, i, v));
+        ArrayConst(treeOfValues);
     }
 }
 
@@ -108,7 +109,7 @@ specialPegActions = {
     ));
 }
 
-parse(programString: string, grammarString: string) -> flow {
-    grammar = compilePegGrammar(grammarString);
+parse(programString: string) -> flow {
+    grammar = compilePegGrammar("#include lingo/nemo_grammar.lingo");
     parsic(grammar, programString, specialPegActions);
 }

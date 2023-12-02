@@ -18,8 +18,7 @@
 
 ## Simple non-deterministic language NeMo
 
-* [Lab11](lab11)
-* [Lab12](lab12)
+* [Lab11 + Lab12](lab11+lab12)
 
 ## Formal verification of NeMo programs
 

@@ -1,6 +1,5 @@
-import grammar;
 import ds/tree;
-import ds/set;
+import nemo_grammar;
 
 export {
     Success : ();
@@ -11,7 +10,7 @@ export {
     AnalysisResult ::= Success, RedeclarationError, InvalidTypeError, AssignmentToUndeclaredVarError, AssignmentTypesMismatchError;
     analysisResult2s(res : AnalysisResult) -> string;
 
-    analyse(program : Program) -> AnalysisResult;
+    analyse(program : NemoProgram) -> AnalysisResult;
 }
 
 analysisResult2s(res : AnalysisResult) -> string {
@@ -28,7 +27,7 @@ analysisResult2s(res : AnalysisResult) -> string {
     }
 }
 
-getDeclaredVariables(program : Program) -> Tree<string, [VarDecl]> {
+getDeclaredVariables(program : NemoProgram) -> Tree<string, [VarDecl]> {
     fold(
         program.varDeclList.elements,
         makeTree(),
@@ -53,6 +52,56 @@ analyseDeclaredVariables(declaredVariables : Tree<string, [VarDecl]>) -> Analysi
     });
 }
 
+areArraysWithSimilarType2(t1 : ExprType, t2 : ExprType) -> bool {
+    switch (t1) {
+        Array(bt1) : {
+            switch (t2) {
+                Array(bt2) : bt1 == AnyType() || bt2 == AnyType() || bt1 == bt2 || areArraysWithSimilarType2(bt1, bt2);   
+                
+                default : false;
+            }
+        }
+        
+        default : false;
+    }
+}
+
+areArraysWithSimilarType(ts : [ExprType]) -> bool {
+    foldi(ts, true, \i, acc, t -> {
+        if (i == length(ts) - 1) {
+            acc;
+        } else {
+            acc && areArraysWithSimilarType2(ts[i], ts[i + 1]);
+        }
+    });
+}
+
+chooseMostSpecificArrayType2(t1 : ExprType, t2 : ExprType) -> ExprType {
+    switch (t1) {
+        Array(bt1) : {
+            if (bt1 != AnyType()) {
+                t1;
+            } else {
+                switch (t2) {
+                    Array(bt2) : {
+                        t2;
+                    }
+                    
+                    default : NoType()
+                }
+            }
+        }
+        
+        default : NoType();
+    }
+}
+
+chooseMostSpecificArrayType(ts : [ExprType]) -> ExprType {
+    fold(ts, Array(AnyType()), \acc, t -> {
+        chooseMostSpecificArrayType2(acc, t);
+    });
+}
+
 calculateTypeOfConst(c : Const) -> ExprType {
     switch (c) {
         IntConst(value) : Int();
@@ -60,18 +109,26 @@ calculateTypeOfConst(c : Const) -> ExprType {
         BoolConst(value) : Bool();
         RealConst(value) : Real();
         ArrayConst(values) : {
-            elementsTypes = map(values, \v -> calculateTypeOfConst(v));
+            keyValuePairs = tree2pairs(values);
+            valuesArray = map(keyValuePairs, \p -> p.second);
 
-            // If element of array-constant cannot have type
-            if (contains(elementsTypes, NoType())) {
-                NoType();
+            if (length(valuesArray) == 0) {
+                Array(AnyType());
             } else {
-                // If elements have different types
-                if (countA(elementsTypes, \e -> e == elementsTypes[0]) != length(elementsTypes)) {
+                elementsTypes = map(valuesArray, \v -> calculateTypeOfConst(v));
+
+                // If element of array-constant cannot have type
+                if (contains(elementsTypes, NoType())) {
                     NoType();
                 } else {
-                    // All elements have same type so we can return type of first element
-                    Array(elementsTypes[0]);
+                    // If elements have different types
+                    if (areArraysWithSimilarType(elementsTypes)) {
+                        Array(chooseMostSpecificArrayType(elementsTypes));
+                    } else if (countA(elementsTypes, \e -> e == elementsTypes[0]) == length(elementsTypes)) {
+                        Array(elementsTypes[0]);
+                    } else {
+                        NoType();
+                    }
                 }
             }
         }
@@ -115,7 +172,6 @@ isArrayType(t : ExprType) -> bool {
 }
 
 calculateTypeOfArrayOp(op : ArrayOp, variablesTypes : Tree<string, ExprType>) -> ExprType {
-    // We cannot perform an operation not on an array
     firstOperand = op.arr;
     firstOperandType = calculateTypeOfExpr(firstOperand, variablesTypes);
 
@@ -125,10 +181,13 @@ calculateTypeOfArrayOp(op : ArrayOp, variablesTypes : Tree<string, ExprType>) ->
                 ArrayUpdateOpType(ind, val) : {
                     indType = calculateTypeOfExpr(ind, variablesTypes);
                     valType = calculateTypeOfExpr(val, variablesTypes);
-                    if (indType != Int() || valType != baseType) {
+
+                    if (indType != Int()) {
                         NoType();
+                    } else if (baseType == AnyType() || baseType == valType) {
+                        Array(valType);
                     } else {
-                        firstOperandType;
+                        NoType();
                     }
                 }
 
@@ -142,10 +201,10 @@ calculateTypeOfArrayOp(op : ArrayOp, variablesTypes : Tree<string, ExprType>) ->
 
                 ArrayConcatOpType(arr2) : {
                     secondOperandType = calculateTypeOfExpr(arr2, variablesTypes);
-                    if (!isArrayType(secondOperandType) || firstOperandType != secondOperandType) {
+                    if (!areArraysWithSimilarType2(firstOperandType, secondOperandType)) {
                         NoType();
                     } else {
-                        firstOperandType;
+                        chooseMostSpecificArrayType2(firstOperandType, secondOperandType);
                     }
                 }
 
@@ -229,10 +288,10 @@ analyseAssignment(a : Assignment, variablesTypes : Tree<string, ExprType>) -> An
         if (exprType == NoType()) {
             analyseType(expr, exprType);
         } else {
-            if (exprType != varType) {
-                AssignmentTypesMismatchError(a);
-            } else {
+            if (exprType == varType || areArraysWithSimilarType2(exprType, varType)) {
                 Success();
+            } else {
+                AssignmentTypesMismatchError(a);
             }
         }
     }
@@ -277,7 +336,7 @@ analyseBody(body : Body, variablesTypes : Tree<string, ExprType>) -> AnalysisRes
     }
 }
 
-analyse(program : Program) -> AnalysisResult {
+analyse(program : NemoProgram) -> AnalysisResult {
     declaredVariables = getDeclaredVariables(program);
 
     res1 = analyseDeclaredVariables(declaredVariables);
