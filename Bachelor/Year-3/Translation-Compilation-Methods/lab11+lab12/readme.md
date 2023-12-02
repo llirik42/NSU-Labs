@@ -21,6 +21,7 @@ flowcpp compiler.flow
 from folder with `compiler.flow`.
 
 > Compiler reads file `.../flow9/nemo/program.nemo` and writes a program in the language of the virtual machine to the file `.../flow9/nemo/program.out`.
+
 > Compiler can run tests that are located at the folder `...flow9/nemo/tests`.
 
 ## Virtual machine
