@@ -93,14 +93,14 @@ int my_mutex_trylock(my_mutex_t* mutex) {
 
         case ERROR_CHECKING:
             if (atomic_compare_exchange_strong(&mutex->lock, &unlocked, LOCKED)) {
-                mutex->owner = gettid();
+                atomic_store(&mutex->owner, gettid());
                 return SUCCESS;
             }
             return EBUSY;
 
         case RECURSIVE:
             if (atomic_compare_exchange_strong(&mutex->lock, &unlocked, LOCKED)) {
-                mutex->owner = gettid();
+                atomic_store(&mutex->owner, gettid());
             }
             if (mutex->owner == tid) {
                 mutex->count++;
