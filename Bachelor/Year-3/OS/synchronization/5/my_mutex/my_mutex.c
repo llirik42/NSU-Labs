@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <linux/futex.h>
 #include <limits.h>
+#include <stdbool.h>
 #include "my_mutex.h"
 
 #define SUCCESS 0
@@ -16,19 +17,34 @@
 
 #define NO_OWNER 0
 
+#define SPIN_ITERATIONS_COUNT 1000000
+
 long futex(volatile uint32_t* uaddr, int futex_op, uint32_t val, const struct timespec* timeout, uint32_t* uaddr2, uint32_t val3) {
     return syscall(SYS_futex, uaddr, futex_op, val, timeout, uaddr2, val3);
 }
 
+bool lock_mutex(my_mutex_t* mutex) {
+    uint32_t unlocked = UNLOCKED;
+
+    if (atomic_compare_exchange_strong(&mutex->lock, &unlocked, LOCKED)) {
+        atomic_store(&mutex->owner, gettid());
+        return true;
+    }
+
+    return false;
+}
+
 void wait_until_unlocked_and_lock(my_mutex_t* mutex) {
-    while (1) {
-        uint32_t unlocked = UNLOCKED;
-
-        if (atomic_compare_exchange_strong(&mutex->lock, &unlocked, LOCKED)) {
-            atomic_store(&mutex->owner, gettid());
-            break;
+    for (unsigned int i = 0; i < SPIN_ITERATIONS_COUNT; i++) {
+        if (lock_mutex(mutex)) {
+            return;
         }
+    }
 
+    while (1) {
+        if (lock_mutex(mutex)) {
+            return;
+        }
         futex(&mutex->lock, FUTEX_WAIT, LOCKED, NULL, NULL, 0);
     }
 }
@@ -84,25 +100,17 @@ int my_mutex_lock(my_mutex_t* mutex) {
 }
 
 int my_mutex_trylock(my_mutex_t* mutex) {
-    const int tid = gettid();
-
-    uint32_t unlocked = UNLOCKED;
-
     switch (mutex->kind) {
         case FAST:
 
         case ERROR_CHECKING:
-            if (atomic_compare_exchange_strong(&mutex->lock, &unlocked, LOCKED)) {
-                atomic_store(&mutex->owner, gettid());
+            if (lock_mutex(mutex)) {
                 return SUCCESS;
             }
             return EBUSY;
 
         case RECURSIVE:
-            if (atomic_compare_exchange_strong(&mutex->lock, &unlocked, LOCKED)) {
-                atomic_store(&mutex->owner, gettid());
-            }
-            if (mutex->owner == tid) {
+            if (lock_mutex(mutex)) {
                 mutex->count++;
                 return SUCCESS;
             }
