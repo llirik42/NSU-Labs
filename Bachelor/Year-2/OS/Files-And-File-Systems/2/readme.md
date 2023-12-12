@@ -11,7 +11,7 @@ gcc main.c operations.c utils.c -o main.out
 ```
 
 ```Bash
-./main.out -g
+./main.out -c
 ```
 
 ```Bash
