@@ -4,7 +4,7 @@
 gcc main.c storage.c utils.c -D<TYPE> -o main.out 
 ```
 
-где *Type* может быть одним из `SPIN`, `MUTEX`, `MY_SPIN`, `MY_MUTEX`. Если не указать флаг `-D`, то будет использовать *rwlock*.
+где *Type* может быть одним из `SPIN`, `MUTEX`, `MY_SPIN`, `MY_MUTEX`. Если не указать опцию `-D`, то будет использоваться *rwlock*.
 
 # Запуск
 
