@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <unistd.h>
 #include "uthread/uthread.h"
 #include "uthread/scheduler.h"
 
@@ -10,11 +9,6 @@ void* routine1(void* arg) {
 
     printf("Hi, %s\n", arg);
     return "Result!";
-}
-
-void* routine2(void* arg) {
-    printf("%s\n", (char*) arg);
-    return NULL;
 }
 
 int main(int argc, char* argv[]) {

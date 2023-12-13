@@ -1,5 +1,4 @@
 #include <errno.h>
-#include <signal.h>
 #include <string.h>
 #include "scheduler.h"
 #include "uthread_data.h"
@@ -42,12 +41,9 @@ int uthread_create(uthread_t* uthread, void* (* start_routine)(void*), void* arg
     makecontext(&(*uthread)->ctx, (void (*)(void)) thread_routine_wrapper, 1, *uthread);
     new_thread_id++;
 
-    sigset_t sigset, old_set;
-    sigemptyset(&sigset);
-    sigfillset(&sigset);
-    sigprocmask(SIG_BLOCK, &sigset, &old_set);
+    block_sigalarm();
     const int code = scheduler_add_uthread(*uthread);
-    sigprocmask(SIG_SETMASK, &old_set, NULL);
+    unblock_sigalarm();
 
     if (code == -1) {
         uthread_data_free(*uthread);
@@ -61,10 +57,15 @@ int uthread_join(uthread_t uthread, void** retval) {
     wait_on_yes_no_address(&(uthread->exited), YES);
     uthread->joined = YES;
     notify_all_on_address(&(uthread->joined));
+    scheduler_remove_uthread(uthread);
 
     if (retval != NULL) {
         *retval = uthread->retval;
     }
+
+    block_sigalarm();
+    uthread_data_free(uthread);
+    unblock_sigalarm();
 
     return 0;
 }

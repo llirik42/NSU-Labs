@@ -16,3 +16,7 @@ void notify_all_on_address(volatile uint32_t* uaddr);
 void wait_on_yes_no_address(volatile uint32_t* uaddr, uint32_t value);
 
 uint32_t invert_yes_no(uint32_t value);
+
+void block_sigalarm();
+
+void unblock_sigalarm();

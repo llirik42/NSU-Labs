@@ -7,6 +7,7 @@
 #include <linux/futex.h>
 #include <stdatomic.h>
 #include <limits.h>
+#include <signal.h>
 #include "utils.h"
 
 long futex(volatile uint32_t* uaddr, int futex_op, uint32_t val, const struct timespec* timeout, uint32_t* uaddr2,
@@ -54,4 +55,18 @@ void wait_on_yes_no_address(volatile uint32_t* uaddr, uint32_t value) {
 
 uint32_t invert_yes_no(uint32_t value) {
     return 1 - value;
+}
+
+void block_sigalarm() {
+    sigset_t sigset;
+    sigemptyset(&sigset);
+    sigaddset(&sigset, SIGALRM);
+    sigprocmask(SIG_BLOCK, &sigset, NULL);
+}
+
+void unblock_sigalarm() {
+    sigset_t sigset;
+    sigemptyset(&sigset);
+    sigaddset(&sigset, SIGALRM);
+    sigprocmask(SIG_UNBLOCK, &sigset, NULL);
 }

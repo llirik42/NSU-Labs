@@ -25,12 +25,9 @@ void schedule() {
     struct uthread_data* next_thread = uthread_queue_get(uthread_queue, next_thread_id);
     current_thread_id = next_thread_id;
 
-    sigset_t block_set, old_set;
-    sigemptyset(&block_set);
-    sigaddset(&block_set, SIGALRM);
-    sigprocmask(SIG_BLOCK, &block_set, &old_set);
+    block_sigalarm();
     swapcontext(&current_thread->ctx, &next_thread->ctx);
-    sigprocmask(SIG_SETMASK, &old_set, NULL);
+    unblock_sigalarm();
 }
 
 int create_fictive_main_uthread(struct uthread_data** main_uthread_data) {
@@ -42,6 +39,7 @@ int create_fictive_main_uthread(struct uthread_data** main_uthread_data) {
     }
 
     *main_uthread_data = region_start;
+    (*main_uthread_data)->tid = -1;
     getcontext(&(*main_uthread_data)->ctx);
 
     return 0;
@@ -87,4 +85,5 @@ int scheduler_add_uthread(struct uthread_data* uthread_data) {
 
 void scheduler_remove_uthread(struct uthread_data* uthread_data) {
     uthread_queue_remove(uthread_queue, uthread_data->tid);
+    schedule();
 }
