@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <stdatomic.h>
 #include <unistd.h>
 #include <stdbool.h>
@@ -5,6 +7,7 @@
 #include <pthread.h>
 #include <stdlib.h>
 #include <getopt.h>
+#include <sched.h>
 #include "utils.h"
 #include "storage.h"
 
@@ -27,58 +30,19 @@ unsigned int greater_checks_counter = 0;
 unsigned int greater_checker_iterations = 0;
 unsigned int swaps_counter = 0;
 
-#ifdef SPIN
-    pthread_spinlock_t swaps_counter_spin;
-#elif defined(MUTEX)
-    pthread_mutex_t swaps_counter_mutex;
-#elif defined(MY_SPIN)
-    my_spinlock_t swaps_counter_my_spin;
-#elif defined(MY_MUTEX)
-    my_mutex_t swaps_counter_my_mutex;
-#else
-    pthread_rwlock_t swaps_counter_rwlock;
-#endif
+void set_cpu(int n) {
+    int err;
+    cpu_set_t cpuset;
+    pthread_t tid = pthread_self();
 
-int rlock_swaps_counter() {
-    #ifdef SPIN
-        return pthread_spin_lock(&swaps_counter_spin);
-    #elif defined(MUTEX)
-        return pthread_mutex_lock(&swaps_counter_mutex);
-    #elif defined(MY_SPIN)
-        return my_spin_lock(&swaps_counter_my_spin);
-    #elif defined(MY_MUTEX)
-        return my_mutex_lock(&swaps_counter_my_mutex);
-    #else
-        return pthread_rwlock_rdlock(&swaps_counter_rwlock);
-    #endif
-}
+    CPU_ZERO(&cpuset);
+    CPU_SET(n, &cpuset);
 
-int wlock_swaps_counter() {
-    #ifdef SPIN
-        return pthread_spin_lock(&swaps_counter_spin);
-    #elif defined(MUTEX)
-        return pthread_mutex_lock(&swaps_counter_mutex);
-    #elif defined(MY_SPIN)
-        return my_spin_lock(&swaps_counter_my_spin);
-    #elif defined(MY_MUTEX)
-        return my_mutex_lock(&swaps_counter_my_mutex);
-    #else
-        return pthread_rwlock_wrlock(&swaps_counter_rwlock);
-    #endif
-}
-
-int unlock_swaps_counter() {
-    #ifdef SPIN
-        return pthread_spin_unlock(&swaps_counter_spin);
-    #elif defined(MUTEX)
-        return pthread_mutex_unlock(&swaps_counter_mutex);
-    #elif defined(MY_SPIN)
-        return my_spin_unlock(&swaps_counter_my_spin);
-    #elif defined(MY_MUTEX)
-        return my_mutex_unlock(&swaps_counter_my_mutex);
-    #else
-        return pthread_rwlock_unlock(&swaps_counter_rwlock);
-    #endif
+    err = pthread_setaffinity_np(tid, sizeof(cpu_set_t), &cpuset);
+    if (err) {
+        printf("set_cpu: pthread_setaffinity failed for cpu %d\n", n);
+        return;
+    }
 }
 
 bool need_to_swap() {
@@ -171,21 +135,26 @@ void checker(void* arg, node_comparator_t cmp, unsigned int* checks_counter, uns
 }
 
 void* less_checker(void* arg) {
+    set_cpu(0);
     checker(arg, less_comparator, &less_checks_counter, &less_checker_iterations);
     return NULL;
 }
 
 void* equal_checker(void* arg) {
+    set_cpu(1);
     checker(arg, equal_comparator, &equal_checks_counter, &equal_checker_iterations);
     return NULL;
 }
 
 void* greater_checker(void* arg) {
+    set_cpu(2);
     checker(arg, greater_comparator, &greater_checks_counter, &greater_checker_iterations);
     return NULL;
 }
 
 void* swapper(void* arg) {
+    set_cpu(rand() % 4);
+
     const struct Storage* storage = arg;
 
     while (1) {
@@ -239,17 +208,17 @@ void print_help() {
 }
 
 int main(int argc, char** argv) {
-    #ifdef SPIN
-        printf("SPIN!\n");
-    #elif defined(MUTEX)
-        printf("MUTEX!\n");
-    #elif defined(MY_SPIN)
-        printf("MY-SPIN!\n");
-    #elif defined(MY_MUTEX)
-        printf("MY-MUTEX!\n");
-    #else
-        printf("RWLOCK!\n");
-    #endif
+#ifdef SPIN
+    printf("SPIN!\n");
+#elif defined(MUTEX)
+    printf("MUTEX!\n");
+#elif defined(MY_SPIN)
+    printf("MY-SPIN!\n");
+#elif defined(MY_MUTEX)
+    printf("MY-MUTEX!\n");
+#else
+    printf("RWLOCK!\n");
+#endif
 
     if (argc == 1) {
         print_help();
@@ -280,8 +249,13 @@ int main(int argc, char** argv) {
             case 't':
                 work_time = strtoul(optarg, NULL, 10);
                 break;
+            case 'h':
+                print_help();
+                return 0;
         }
     }
+
+    printf("s=%d n=%d t=%d\n", storage_size, swappers_number, work_time);
 
     pthread_t less_checker_tid, equal_checker_tid, greater_checker_tid;
     pthread_t* swappers_tids = calloc(swappers_number, sizeof(pthread_t));
