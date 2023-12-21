@@ -12,7 +12,7 @@ void* routine1(void* arg) {
 }
 
 int main(int argc, char* argv[]) {
-    scheduler_init(500);
+    scheduler_init(1000);
 
     uthread_t tid1, tid2, tid3, tid4, tid5;
 
@@ -24,6 +24,7 @@ int main(int argc, char* argv[]) {
 
     void* val1;
     uthread_join(tid1, &val1);
+    printf("%s\n", val1);
 
     void* val2;
     uthread_join(tid2, &val2);
