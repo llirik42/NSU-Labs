@@ -37,11 +37,7 @@ export {
     ArithmMulOp : ();
     ArithmDivOp : ();
     ArithmBinaryOp ::= ArithmAddOp, ArithmSubOp, ArithmMulOp, ArithmDivOp;
-
-    // Arithmetic negation
-    ArithmNegOp : ();
-    ArithmOp ::= ArithmBinaryOp, ArithmNegOp;
-
+    
     // Arithmetic expressions
     ArithmBinary : (l : Expr, r : Expr, op : ArithmBinaryOp);
     ArithmNeg : (e : Expr);
