@@ -22,6 +22,4 @@
 
 ## Formal verification of NeMo programs
 
-* [Lab13](lab13)
-* [Lab14](lab14)
-* [Lab15](lab15)
+* [Lab13 + Lab14 + Lab15](lab13+lab14+lab15)

@@ -1,0 +1,80 @@
+import grammar;
+import backend/vc_generation;
+
+export {
+    translate2z3Python(program : AnnotatedNemoProgram) -> string;
+}
+
+getPythonSort(type : ExprType) -> string {
+    switch (type) {
+        Int() : "IntSort";
+        String() : "StringSort";
+        Bool() : "BoolSort";
+        Real() : "RealSort";
+        Array(baseType) : "ArraySort";
+        default: "InvalidSort";
+    }
+}
+
+getPythonType(type : VarType) -> string {
+    switch (type) {
+        Int() : "Int";
+        String() : "String";
+        Bool() : "Bool";
+        Real() : "Real";
+        Array(baseType) : "Array"
+    }
+}
+
+getPythonDeclarationExpr(varDecl : VarDecl) -> string {
+    name = varDecl.name;
+    type = varDecl.type;
+    pythonType = getPythonType(type);
+
+    sortOfArrayIndex = getPythonSort(Int());
+
+    switch (type) {
+        Array(baseType) : pythonType + "('" + name + "', " + sortOfArrayIndex + "(), " + getPythonSort(baseType) + "())"; // TODO: add support of arrays of arrays
+        default: pythonType + "('" + name + "')";
+    }
+}
+
+getPythonCondition(c : BooleanExpr) -> string {
+    switch (c) {
+        Not(e) : "Not(" + getPythonCondition(e) + ")";
+        
+        Or(l, r) : "Or(" + getPythonCondition(l) + ", " + getPythonCondition(r) + ")";
+        
+        BoolConst(v) : {
+            if (v) {
+                "True";
+            } else {
+                "False";
+            }
+        }
+
+        Comparison(l, r, cmpType) : {
+            if (cmpType == Equal()) {
+                expr2s(l) + " == " + expr2s(r);
+            } else {
+                expr2s(c);
+            }
+        }
+    }
+}
+
+getVarsDeclarations(program : AnnotatedNemoProgram) -> string {
+    fold(program.varDeclList.elements, "", \acc, el -> {
+        acc + "\n" + el.name + " = " + getPythonDeclarationExpr(el)
+    });
+}
+
+getMainPythonPart(program : AnnotatedNemoProgram) -> string {
+    getVarsDeclarations(program) + "\n\nsolver.add(" + getPythonCondition(Not(generateVC(program))) + ")";
+}
+
+translate2z3Python(program : AnnotatedNemoProgram) -> string {
+    beginning = "from z3 import *\n\nsolver = Solver()\n";
+    ending = "\n\nresult = solver.check()\nprint(result)\nif result == sat:\n    print(solver.model())\n";
+    beginning + getMainPythonPart(program) + ending;
+}

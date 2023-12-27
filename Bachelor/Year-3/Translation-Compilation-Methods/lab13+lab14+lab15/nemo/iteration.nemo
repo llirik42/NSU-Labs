@@ -1,0 +1,13 @@
+VAR a : INT; VAR b : INT; VAR x : INT; VAR i : INT;
+
+@pre(a >= 1)
+@post(x = a * b)
+
+i := 0;
+@inv(i <= a)
+{
+    x := x + b;
+    i := i + 1;
+    (i <= a)?;
+}*;
+(i = a)?;

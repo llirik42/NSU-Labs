@@ -1,0 +1,5 @@
+VAR a : INT; VAR b : INT;
+
+@pre(a = b)
+@post(a = b + 1)
+a := a + 1 U a := a + 2;

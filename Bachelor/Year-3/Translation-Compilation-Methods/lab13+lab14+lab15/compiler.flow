@@ -1,0 +1,29 @@
+import frontend/parsing;
+import frontend/analysis;
+import backend/z3_translation;
+import sys/process;
+
+main() {
+    program = parse("#include nemo/program.nemo");
+    if (program != flow("PARSING FAILED")) {
+        result = analyse(program);
+        if (result != Success()) {
+            println(analysisResult2s(result));
+        } else {
+            if (!setFileContent("main.py", translate2z3Python(program))) {
+                println("Cannot create file \"./main.py\"");
+            }
+
+            output = execSystemProcessOutput("python3", ["main.py"], ".");
+
+            if (output.stdout == "unsat\n") {
+                println("Program is correct!\n");
+            } else {
+                println("Program is incorrect!");
+                println(strRight(output.stdout, 3));
+            }
+        } 
+    }
+
+    quit(0);
+}
