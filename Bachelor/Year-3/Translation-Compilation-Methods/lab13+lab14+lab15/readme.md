@@ -29,7 +29,7 @@ flowcpp compiler.flow
 ```
 > Compiler reads file `.../flow9/nemo/program.nemo`, creates VC of the program and translates it to the python-script `main.py` (in the same folder of `compiler.flow`), creates process, that executes this python-script, and writes results.
 
-> If compiler cannot create process that executes `main.py`, try replacing `python` to `python3` (in `compiler.flow`).
+> If compiler cannot create process that executes `main.py`, try replacing `python3` to `python` (in `compiler.flow`).
 
 > `main.py` uses package `z3-solver` so you cannot use compiler without installing core of `z3` or pip-package `z3-solver`.
 
