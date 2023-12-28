@@ -33,4 +33,4 @@ flowcpp compiler.flow
 
 > `main.py` uses package `z3-solver` so you cannot use compiler without installing core of `z3` or pip-package `z3-solver`.
 
-> `flow9` cannot create terminal or run bash-script. That's why we cannot use `z3-solver` in the virtual environment and we must install it to the host environment.
+> `flow9` creates new terminal for every process created by `execSystemProcessOutput`. It means that we cannot activate python-venv and launch process in it from flow9. That's why we cannot use `z3-solver` in the virtual environment and we must install it to the host environment.
