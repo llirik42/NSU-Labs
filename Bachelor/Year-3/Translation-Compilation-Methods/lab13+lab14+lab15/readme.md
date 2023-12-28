@@ -56,6 +56,12 @@ pip install z3-solver
 flowcpp compiler.flow
 ```
 
+5. Deactivate python-venv (if you need)
+
+```Bash
+deactivate
+```
+
 > Compiler reads file `.../flow9/nemo/program.nemo`, creates VC of the program and translates it to the python-script `main.py` (in the same folder of `compiler.flow`), creates process, that executes this python-script, and writes results.
 
 > If compiler cannot create process that executes `main.py`, try replacing `python3` to `python` (in `compiler.flow`).
