@@ -3,8 +3,8 @@
 #include <malloc.h>
 #include <string.h>
 #include <pthread.h>
-#include "my_spin/my_spin.h"
-#include "my_mutex/my_mutex.h"
+#include "sync/my_spin/my_spin.h"
+#include "sync/my_mutex/my_mutex.h"
 
 struct Node;
 
@@ -26,3 +26,9 @@ struct Storage;
 struct Storage* create_storage(unsigned size);
 
 struct Node* get_head(const struct Storage* storage);
+
+int rlock_storage(struct Storage* storage);
+
+int wlock_storage(struct Storage* storage);
+
+int unlock_storage(struct Storage* storage);

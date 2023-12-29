@@ -107,22 +107,17 @@ bool greater_comparator(const struct Node* n1, const struct Node* n2) {
 
 // Abstract checker
 void checker(void* arg, node_comparator_t cmp, unsigned int* checks_counter, unsigned int* iterations_counter) {
-    const struct Storage* storage = arg;
+    struct Storage* storage = arg;
 
     while (1) {
+        rlock_storage(storage);
         struct Node* current_node = get_head(storage);
         rlock_node(current_node);
+        unlock_storage(storage);
 
-        while (1) {
-            struct Node* next_node = get_next(current_node);
+        struct Node* next_node = get_next(current_node);
 
-            // If current node is last one
-            if (next_node == NULL) {
-                unlock_node(current_node);
-                atomic_store(iterations_counter, *iterations_counter + 1);
-                break;
-            }
-
+        while (next_node != NULL) {
             if (cmp(current_node, next_node)) {
                 atomic_store(checks_counter, *checks_counter + 1);
             }
@@ -130,7 +125,11 @@ void checker(void* arg, node_comparator_t cmp, unsigned int* checks_counter, uns
             rlock_node(next_node);
             unlock_node(current_node);
             current_node = next_node;
+            next_node = get_next(current_node);
         }
+
+        unlock_node(current_node);
+        atomic_store(iterations_counter, *iterations_counter + 1);
     }
 }
 
@@ -153,12 +152,13 @@ void* greater_checker(void* arg) {
 }
 
 void* swapper(void* arg) {
-    set_cpu(rand() % 4);
+    set_cpu(3);
 
-    const struct Storage* storage = arg;
+    struct Storage* storage = arg;
 
     while (1) {
         struct Node *current_node = NULL;
+        wlock_storage(storage);
 
         while (1) {
             struct Node *next_node = current_node == NULL ? get_head(storage) : get_next(current_node);
@@ -167,6 +167,12 @@ void* swapper(void* arg) {
                 break;
             }
             wlock_node(next_node);
+
+            // current node == NULL -> we are looking at the first element and there are no elements before it
+            // -> we locked storage -> we have to unlock it
+            if (current_node == NULL) {
+                unlock_storage(storage);
+            }
 
             struct Node *next_next_node = get_next(next_node);
             if (next_next_node == NULL) {
@@ -208,18 +214,6 @@ void print_help() {
 }
 
 int main(int argc, char** argv) {
-#ifdef SPIN
-    printf("SPIN!\n");
-#elif defined(MUTEX)
-    printf("MUTEX!\n");
-#elif defined(MY_SPIN)
-    printf("MY-SPIN!\n");
-#elif defined(MY_MUTEX)
-    printf("MY-MUTEX!\n");
-#else
-    printf("RWLOCK!\n");
-#endif
-
     if (argc == 1) {
         print_help();
         return 0;
