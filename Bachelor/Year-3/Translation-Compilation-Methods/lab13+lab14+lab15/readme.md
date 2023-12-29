@@ -21,7 +21,7 @@ Implement the translator from annotated NeMo programs to the input language of z
 pip install z3-solver
 ```
 
-5. Enjoy verification!
+4. Enjoy verification!
 
 ```Bash
 flowcpp compiler.flow
