@@ -94,8 +94,8 @@ main() {
     if (result != Success()) {
         println(analysisResult2s(result));
     } else {
-        if (!setFileContent("/home/llirik42/flow9/nemo/program.out", translate(program))) {
-            println("Cannot create file \"/home/llirik42/flow9/nemo/program.out\"");
+        if (!setFileContent("./program.out", translate(program))) {
+            println("Cannot create file \"./program.out\"");
         }
     }
     

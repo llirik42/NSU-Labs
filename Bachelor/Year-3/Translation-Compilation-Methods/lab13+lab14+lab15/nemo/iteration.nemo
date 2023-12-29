@@ -1,6 +1,6 @@
 VAR a : INT; VAR b : INT; VAR x : INT; VAR i : INT;
 
-@pre(a >= 1)
+@pre(a >= 0)
 @post(x = a * b)
 
 i := 0;

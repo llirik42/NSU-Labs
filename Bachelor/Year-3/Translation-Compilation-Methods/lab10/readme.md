@@ -11,5 +11,3 @@ flowcpp main.flow
 ```
 
 from folder with `main.flow`.
-
-> Folder `lingo` with `grammar.lingo` and `rules.txt` must be in root of flow9.

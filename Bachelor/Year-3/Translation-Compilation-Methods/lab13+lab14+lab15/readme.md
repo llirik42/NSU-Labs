@@ -12,11 +12,10 @@ Implement the translator from annotated NeMo programs to the input language of z
 
 # Usage
 
-1. Move folders `lingo` and `nemo` to the root of flow9.
-2. Install [z3](https://github.com/Z3Prover/z3)
+1. Install [z3](https://github.com/Z3Prover/z3)
 > You can use `make` with `` -j `nproc` `` to build faster.
-3. Install python.
-4. Install python-package `z3-solver`
+2. Install python.
+3. Install python-package `z3-solver`
 
 ```Bash
 pip install z3-solver
@@ -62,7 +61,7 @@ flowcpp compiler.flow
 deactivate
 ```
 
-> Compiler reads file `.../flow9/nemo/program.nemo`, creates VC of the program and translates it to the python-script `main.py` (in the same folder of `compiler.flow`), creates process, that executes this python-script, and writes results.
+> Compiler reads file `./nemo/program.nemo`, creates VC of the program and translates it to the python-script `main.py` (in the same folder of `compiler.flow`), creates process, that executes this python-script, and writes results.
 
 > If compiler cannot create process that executes `main.py`, try replacing `python3` to `python` (in `compiler.flow`).
 

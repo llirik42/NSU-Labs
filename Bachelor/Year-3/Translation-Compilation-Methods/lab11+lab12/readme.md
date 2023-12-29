@@ -8,8 +8,6 @@ Implement a virtual NeMo machine, which executes programs, translated from NeMo.
 
 # Usage
 
-> Folders `lingo` and `nemo` must be in root of flow9.
-
 ## Compiler
 
 Execute
@@ -20,9 +18,9 @@ flowcpp compiler.flow
 
 from folder with `compiler.flow`.
 
-> Compiler reads file `.../flow9/nemo/program.nemo` and writes a program in the language of the virtual machine to the file `.../flow9/nemo/program.out`.
+> Compiler reads file `./nemo/program.nemo` and writes a program in the language of the virtual machine to the file  `./program.out`.
 
-> Compiler can run tests that are located at the folder `...flow9/nemo/tests`.
+> Compiler can run tests that are located at the folder `./nemo/tests`.
 
 ## Virtual machine
 
@@ -34,4 +32,4 @@ flowcpp vm.flow
 
 from folder with `vm.flow`.
 
-> Virtual machine reads file `.../flow9/nemo/program.out` and executes it.
+> Virtual machine reads file `./program.out` and executes it.

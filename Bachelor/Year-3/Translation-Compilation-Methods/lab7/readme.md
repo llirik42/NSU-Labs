@@ -11,5 +11,3 @@ flowcpp lab7.flow
 ```
 
 from folder with `lab7.flow`.
-
-> Folder `lingo` with `lab7.lingo` must be in root of flow9.

@@ -1,17 +1,13 @@
-VAR n: INT; VAR x: INT; VAR y: INT;
+VAR a : INT; VAR b : INT; VAR x : INT; VAR i : INT;
 
-@pre(n >= 0)
-@post(x * x <= n AND (x + 1) * (x + 1) > n)
+@pre(a >= 0)
+@post(x = a * b)
+
+i := 0;
+@inv(i <= a)
 {
-    x := 0; y := 0;
-    {
-        @inv(y <= n + 1)
-        {
-            (y <= n)?;
-            y := (y + (x + (x + 1)));
-            x := (x + 1);
-        }*;
-        (NOT (y <= n))?;
-    };
-    x := (x - 1);
-};
+    x := x + b;
+    i := i + 1;
+    (i <= a)?;
+}*;
+(i = a)?;
