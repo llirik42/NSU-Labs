@@ -4,6 +4,7 @@ VAR a : INT; VAR b : INT; VAR x : INT; VAR i : INT;
 @post(x = a * b)
 
 i := 0;
+x := 0;
 @inv(i <= a)
 {
     x := x + b;
