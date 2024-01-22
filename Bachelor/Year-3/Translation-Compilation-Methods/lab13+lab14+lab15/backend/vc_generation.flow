@@ -162,13 +162,13 @@ generateVCFromIteration(iteration : AnnotatedUDIteration, preCond : BooleanExpr,
     mergeSets(
         makeSet1(
             buildLogicImplication(
-                preCond,
-                inv
+                inv,
+                postCond
                 )
         ),
         generateVCFromBody( 
             iteration.body,
-            inv, 
+            preCond, 
             inv
         )
     );
