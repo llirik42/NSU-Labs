@@ -1,5 +1,4 @@
 #!/bin/bash
-# for i in {1..100}; do wget --no-http-keep-alive http://ccfit.nsu.ru/~rzheutskiy/test_files/200mb.dat -e use_proxy=on -e http_proxy=127.0.0.1:1234 -O /dev/null && date & done
 
 PROXY_HOST="127.0.0.1"
 PROXY_PORT="1080"
