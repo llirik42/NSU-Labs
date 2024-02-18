@@ -21,3 +21,4 @@
 * [Операционные системы](Bachelor/Year-3/OS)
 * [Методы трансляции и компиляции](Bachelor/Year-3/Translation-Compilation-Methods)
 * [Базы данных](Bachelor/Year-3/Databases)
+* [Инженерная и компьютерная графика](Bachelor/Year-3/ECG)
