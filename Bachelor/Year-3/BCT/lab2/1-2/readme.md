@@ -15,5 +15,5 @@ A = \begin{pmatrix}
 	3 & 7 & -2 \\
 	1 & 1 & -2 \\
 	0 & 1 & 3
-\end{pmatrix}
+\end{pmatrix}.
 ```

@@ -2,5 +2,4 @@
 
 Изобразите график функции в полярных координатах
 
-$$\rho(\varphi) = 3 \varphi^2 + \varphi$$
-
+$$\rho(\varphi) = 3 \varphi^2 + \varphi.$$
