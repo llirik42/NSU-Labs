@@ -1,0 +1,109 @@
+\section{Введение}
+	\begin{goal}
+		Исследование и анализ устойчивости регуляторов по критерию Найквиста.
+	\end{goal}
+	
+	\begin{definition}
+		\definitionfont{Годограф Найквиста} --- это функция
+		\[v (iw) = W(iw),\]
+		
+		где $W(s)$ --- передаточная функция рассматриваемой системы.		
+	\end{definition}
+	
+	\begin{criteria}[Найквиста при использовании ЛЧХ]
+		Система устойчива тогда и только тогда, когда годограф Найквиста не охватывает точку $(-1; 0)$.
+	\end{criteria}
+\section{Постановка задачи}
+	\begin{definition}
+		\definitionfont{Запасом устойчивости по амплитуде} называется число
+		\[K_a = 20 \log \frac{1}{a},\]
+		
+		где $a$ --- расстояние от годографа Найквиста до точки $(-1; 0)$.
+	\end{definition}
+
+	\begin{definition}
+		\definitionfont{Запасом устойчивости по фазе} называется число $\Delta \varphi$, равняющееся углу $\llcorner -1;0;A \lrcorner$, где $A$ --- точка, лежащая на единичной окружности (с центром в нуле) и принадлежащая годографу Найквиста.
+	\end{definition}
+
+	\begin{remark}
+		Достаточным считается запас устойчивости по фазе не менее 30-60 градусов, а по амплитуде не менее 6-12 дБ.
+	\end{remark}
+
+	\begin{remark}
+		Требуется определить запас устойчивости по фазе и по амплитуде для систем автоматического управления с объектом управления из задания №1 при
+		одном значении чистого запаздывания с ПИ и ПИД-регуляторами. Параметры ПИ и ПИД-регуляторов получены при выполнении задания №1 оптимальной
+		настройкой по интегральному критерию качества.
+	\end{remark}
+\section{Схемы и результаты моделирования}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[scale=0.4]{./images/7.png}
+		\caption{Схема моделирования частотных характеристик с ПИ-регулятором} 
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[scale=0.4]{./images/1.png}
+		\caption{Схема моделирования частотных
+			характеристик с ПИД-регулятором} 
+	\end{figure}
+	
+	\begin{table}[H]
+		\centering
+		\begin{tabularx}{\textwidth}{
+				| >{\arraybackslash}X
+				| >{\arraybackslash}X
+				| >{\arraybackslash}X
+				| >{\arraybackslash}X
+				|}
+			\hline
+			$\mathbf{a}$ & $\mathbf{K_a}$, dB & $\mathbf{\varphi}, \degree$ & $\mathbf{\Delta \varphi}, \degree$\\\hline
+			0.602 & 4.406 & 245 & 65 \\\hline
+		\end{tabularx}
+		\caption{Результаты исследования запаса устойчивости с ПИ-регулятором}
+	\end{table}
+	
+	\begin{table}[H]
+		\centering
+		\begin{tabularx}{\textwidth}{
+				| >{\arraybackslash}X
+				| >{\arraybackslash}X
+				| >{\arraybackslash}X
+				| >{\arraybackslash}X
+				|}
+			\hline
+			$\mathbf{a}$ & $\mathbf{K_a}$, dB & $\mathbf{\varphi}, \degree$ & $\mathbf{\Delta \varphi}, \degree$\\\hline
+			0.587 & 4.62 & 253 & 73 \\\hline
+		\end{tabularx}
+		\caption{Результаты исследования запаса устойчивости с ПИД-регулятором}
+	\end{table}
+\section{Выводы}
+	Проведённый анализ показывает, что ПИ-регулятор для рассматриваемого объекта имеет меньший запас устойчивости (и по амплитуде, и по фазе) по сравнению с ПИД-регулятором для того же объекта.
+\section{Приложения}
+	\begin{figure}[H]
+		\centering
+		\includegraphics[scale=0.35]{./images/3.png}
+		\includegraphics[scale=0.35]{./images/4.png}
+		\caption{Определение запаса устойчивости по амплитуде для ПИД-регулятора} 
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[scale=0.35]{./images/5.png}
+		\includegraphics[scale=0.35]{./images/6.png}
+		\caption{Определение запаса устойчивости по фазе для ПИД-регулятора} 
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[scale=0.35]{./images/9.png}
+		\includegraphics[scale=0.35]{./images/10.png}
+		\caption{Определение запаса устойчивости по амплитуде для ПИ-регулятора} 
+	\end{figure}
+	
+	\begin{figure}[H]
+		\centering
+		\includegraphics[scale=0.35]{./images/11.png}
+		\includegraphics[scale=0.35]{./images/12.png}
+		\caption{Определение запаса устойчивости по фазе для ПИ-регулятора} 
+	\end{figure}

@@ -1,0 +1,50 @@
+\documentclass[a4paper]{article}
+
+\usepackage[a4paper, top=2cm, bottom=2cm, left=2cm, right=2cm]{geometry}
+\usepackage[T1, T2A]{fontenc}
+\usepackage[fontsize=12pt]{fontsize}
+
+\usepackage[english, russian]{babel}
+\usepackage[utf8]{inputenc}
+
+\usepackage{hyperref}
+\usepackage{amsthm}
+\usepackage{tabularx}
+\usepackage{pgfplots}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{tikz}
+\usepackage{gensymb}
+\usepackage{indentfirst}
+\usepackage{amssymb}
+
+\hypersetup{pdfpagemode=FullScreen, colorlinks=true, linkcolor=black, urlcolor=cyan}
+
+\newtheoremstyle{mainstyle}
+{\topsep} % measure of space to leave above the theorem
+{\topsep} % measure of space to leave below the theorem
+{\normalfont} % name of font to use in the body of the theorem
+{0pt} % measure of space to indent
+{\large\bfseries} % name of head font
+{\newline\null} % punctuation between head and body
+{\parindent} % space after theorem head
+{\thmname{#1}\thmnumber{ #2}\textnormal{\thmnote{ (#3)}}}
+
+\newcommand{\definitionfont}[1]{\textit{#1}}
+
+\theoremstyle{mainstyle}
+\newtheorem*{definition}{Определение}
+\newtheorem*{goal}{Цель}
+\newtheorem*{remark}{Замечание}
+\newtheorem*{criteria}{Критерий}
+\begin{document}	
+	\input{title_page.tex}
+	
+	\newpage
+	
+	\tableofcontents
+	
+	\newpage
+	
+	\input{content.tex}
+\end{document}
