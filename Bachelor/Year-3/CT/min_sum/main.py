@@ -67,8 +67,12 @@ def calculate_s(old_s: np.ndarray, m_plus: np.ndarray) -> np.ndarray:
 
 
 def calculate_syndrome(y: np.ndarray, h: np.ndarray) -> np.ndarray:
+    def single_f(value: int) -> int:
+        return value % 2
+
+    f = np.vectorize(single_f)
     mult_result: np.ndarray = h.dot(y.reshape(y.shape[0], -1))
-    return mult_result.reshape(1, -1)[0]
+    return f(mult_result.reshape(1, -1)[0])
 
 
 def all_zeros(a: np.ndarray) -> bool:
@@ -97,7 +101,7 @@ def normalize_s(s: np.ndarray) -> np.ndarray:
     result = np.empty(len(s))
 
     for i in range(len(result)):
-        result[i] = -1 if s[i] < 0 else 1
+        result[i] = sign(s[i])
 
     return result
 
