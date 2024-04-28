@@ -23,3 +23,4 @@
 * [Базы данных](Bachelor/Year-3/Databases)
 * [Инженерная и компьютерная графика](Bachelor/Year-3/ECG)
 * [Основы теории управления](Bachelor/Year-3/BCT)
+* [Введение в теорию кодирования](Bachelor/Year-3/CT)
