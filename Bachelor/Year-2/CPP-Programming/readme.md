@@ -1,6 +1,6 @@
 # Практические работы по предмету «Основы объектно-ориентированного программирования»
 
-* [BigInt](Big-Int)
+* [BigInt](https://github.com/llirik42/BigInt)
 * [Prisoner's Dilemma](https://github.com/llirik42/Prisoner-Dilemma)
-* [Sound Processor](Sound-Processor)
-* [CSV-Parser](CSV-Parser)
+* [Sound Processor](https://github.com/llirik42/Sound-Processor)
+* [CSV-Parser](https://github.com/llirik42/CSV-Parser)
