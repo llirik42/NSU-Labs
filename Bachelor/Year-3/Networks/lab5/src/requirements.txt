@@ -1,2 +1,0 @@
-dns-messages==1.0.1
-dnspython==2.4.2

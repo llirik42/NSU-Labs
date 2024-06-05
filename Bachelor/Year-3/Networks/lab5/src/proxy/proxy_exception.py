@@ -1,2 +1,0 @@
-class ProxyException(Exception):
-    pass

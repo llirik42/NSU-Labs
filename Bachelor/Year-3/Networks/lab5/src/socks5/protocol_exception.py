@@ -1,2 +1,0 @@
-class ProtocolException(Exception):
-    pass
