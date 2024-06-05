@@ -1,2 +1,0 @@
-class HTTPException(Exception):
-    pass
