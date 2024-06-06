@@ -31,7 +31,7 @@
 
 ## Блок задач на «хорошо»
 
-[Разработать](4) собственную функцию для создания ядерных потоков — аналог `pthread_create()`:
+[Разработать](https://github.com/llirik42/Kernel-Thread) собственную функцию для создания ядерных потоков — аналог `pthread_create()`:
 
 ```C
 int mythread_create(mythread_t thread, void *(start_routine), void *arg);
@@ -41,7 +41,7 @@ int mythread_create(mythread_t thread, void *(start_routine), void *arg);
 
 ## Блок задач на «отлично»
 
-[Разработать](5) собственную функцию для создания пользовательских потоков:
+[Разработать](https://github.com/llirik42/User-Thread) собственную функцию для создания пользовательских потоков:
 
 ```C
 int uthread_create(uthread_t thread, void *(start_routine), void *arg);
