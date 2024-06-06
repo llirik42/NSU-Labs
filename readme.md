@@ -12,7 +12,7 @@
 * [Программирование на Java](Bachelor/Year-2/Java-Programming)
 * [Основы параллельного программирования](Bachelor/Year-2/Parallel-Programming)
 * [Операционные системы](Bachelor/Year-2/OS)
-* [Сетевые технологии](Bachelor/Year-2/Networks)
+* [Сетевые технологии](https://github.com/llirik42/Networks-Labs)
 * [Теория вероятностей и математическая статистика](https://github.com/llirik42/PT-MS)
 
 ## Третий курс
