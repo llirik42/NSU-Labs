@@ -3,7 +3,7 @@
 ## Первый курс
 
 * [Программирование на C](Bachelor/Year-1/C-Programming)
-* [Цифровая схемотехника](Bachelor/Year-1/Digital-Circuitry)
+* [Цифровая схемотехника](https://github.com/llirik42/Digital-Circuitry)
 
 ## Второй курс
 
