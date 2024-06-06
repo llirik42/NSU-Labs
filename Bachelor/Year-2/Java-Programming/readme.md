@@ -2,10 +2,10 @@
 
 ## Большие задачи
 
-* [Стэковый калькулятор](Big-Tasks/Stack-Calculator)
-* [MVC + GUI](Big-Tasks/Chess)
-* [Эмулятор работы фабрики](Big-Tasks/Factory-Emulator)
-* [Сетевое программирование](Big-Tasks/Chat)
+* [Стэковый калькулятор](https://github.com/llirik42/Stack-Calculator)
+* [MVC + GUI](https://github.com/llirik42/Chess)
+* [Эмулятор работы фабрики](https://github.com/llirik42/Factory-Emulator)
+* [Сетевое программирование](https://github.com/llirik42/Network-Chat)
 
 ## Задания с семинаров
 
