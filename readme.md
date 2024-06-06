@@ -19,7 +19,7 @@
 
 * [Сетевые технологии и телекоммуникации](Bachelor/Year-3/Networks)
 * [Операционные системы](Bachelor/Year-3/OS)
-* [Методы трансляции и компиляции](Bachelor/Year-3/Translation-Compilation-Methods)
+* [Методы трансляции и компиляции](https://github.com/llirik42/Flow9-Labs)
 * [Базы данных](Bachelor/Year-3/Databases)
 * [Инженерная и компьютерная графика](Bachelor/Year-3/ECG)
 * [Основы теории управления](Bachelor/Year-3/BCT)

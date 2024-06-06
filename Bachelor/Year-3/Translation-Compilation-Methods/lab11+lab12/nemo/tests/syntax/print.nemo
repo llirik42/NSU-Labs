@@ -1,8 +1,0 @@
-{
-    PRINT(123);
-    PRINT(1 + 2 + 3);
-    PRINT(true);
-    PRINT((1 < 2) AND (3 > 4));
-    PRINT([1, 2, 3, 4]);
-    PRINT(x);
-};

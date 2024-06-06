@@ -1,7 +1,0 @@
-VAR x : INT; VAR y : INT; VAR a : INT; VAR b : INT;
-
-@pre(x = a AND y = b)
-@post(x = b AND y = a)
-x := x + y;
-y := x - y;
-x := x - y;

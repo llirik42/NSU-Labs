@@ -1,6 +1,0 @@
-VAR x : REAL; VAR y : REAL;
-
-@pre(x = y)
-@post(x = y * y)
-
-x := x * x;

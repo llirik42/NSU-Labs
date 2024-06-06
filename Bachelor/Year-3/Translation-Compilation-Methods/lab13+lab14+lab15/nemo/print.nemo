@@ -1,8 +1,0 @@
-VAR x : INT; VAR y : INT;
-
-@pre(x = y)
-@post(x = y)
-
-y := 312;
-x := y;
-PRINT(x);

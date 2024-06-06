@@ -1,5 +1,0 @@
-VAR x : INT; VAR y : REAL;
-
-{
-    x := y;
-};

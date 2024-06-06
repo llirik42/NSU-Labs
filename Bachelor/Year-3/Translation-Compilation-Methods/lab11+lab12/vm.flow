@@ -1,8 +1,0 @@
-import vm/parsing;
-import vm/execution;
-
-main() {
-    program = parse("#include program.out");
-    execute(program);
-    quit(0);
-}
