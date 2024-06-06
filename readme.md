@@ -17,7 +17,7 @@
 
 ## Третий курс
 
-* [ООАиД](https://github.com/llirik42/NSU-Timetable-Manager)
+* [Объектно-ориентированный анализ и дизайн](https://github.com/llirik42/NSU-Timetable-Manager)
 * [Сетевые технологии и телекоммуникации](Bachelor/Year-3/Networks)
 * [Операционные системы](Bachelor/Year-3/OS)
 * [Методы трансляции и компиляции](https://github.com/llirik42/Flow9-Labs)
@@ -25,7 +25,7 @@
 * [Инженерная и компьютерная графика](Bachelor/Year-3/ECG)
 * [Основы теории управления](Bachelor/Year-3/BCT)
 * [Введение в теорию кодирования](Bachelor/Year-3/CT)
-* [ТПНС](Bachelor/Year-3/TPNN)
-* [УППРПО](https://github.com/Concert-Mate/Music-Service)
-* [ТООИ](Bachelor/Year-3/TFIP)
+* [Теория и практика нейронных сетей](Bachelor/Year-3/TPNN)
+* [Управление производственным процессом разработки программного обеспечения](https://github.com/Concert-Mate/Music-Service)
+* [Теоретические основы обработки информации](Bachelor/Year-3/TFIP)
 * [Правоведение](https://github.com/llirik42/Jurisprudence)
