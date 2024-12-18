@@ -29,3 +29,7 @@
 * [Управление производственным процессом разработки программного обеспечения](https://github.com/Concert-Mate/Music-Service)
 * [Теоретические основы обработки информации](Bachelor/Year-3/TFIP)
 * [Правоведение](https://github.com/llirik42/Jurisprudence)
+
+## Четвёртый курс
+
+* [C#](https://github.com/llirik42/Hackathon-Simulator)
