@@ -32,5 +32,5 @@
 
 ## Четвёртый курс
 
-* [C#](https://github.com/llirik42/Hackathon-Simulator)
+* [Введение в C# и платформу .NET](https://github.com/llirik42/Hackathon-Simulator)
 * [Распределённые алгоритмы](https://github.com/llirik42/Distributed-Algorithms)
