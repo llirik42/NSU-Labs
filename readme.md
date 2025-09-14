@@ -1,11 +1,11 @@
 # Бакалавриат
 
-## Первый курс
+## Курс 1
 
 * [Программирование на C](https://github.com/llirik42/C-Programming)
 * [Цифровая схемотехника](https://github.com/llirik42/Digital-Circuitry)
 
-## Второй курс
+## Курс 2
 
 * [Программирование на C++](Bachelor/Year-2/CPP-Programming)
 * [ЭВМ и перифирийные устройства](Bachelor/Year-2/Computers-And-Peripherals)
@@ -15,7 +15,7 @@
 * [Сетевые технологии](https://github.com/llirik42/Networks-Labs)
 * [Теория вероятностей и математическая статистика](https://github.com/llirik42/PT-MS)
 
-## Третий курс
+## Курс 3
 
 * [Объектно-ориентированный анализ и дизайн](https://github.com/llirik42/NSU-Timetable-Manager)
 * [Сетевые технологии и телекоммуникации](Bachelor/Year-3/Networks)
@@ -30,7 +30,13 @@
 * [Теоретические основы обработки информации](Bachelor/Year-3/TFIP)
 * [Правоведение](https://github.com/llirik42/Jurisprudence)
 
-## Четвёртый курс
+## Курс 4
 
 * [Введение в C# и платформу .NET](https://github.com/llirik42/Hackathon-Simulator)
 * [Распределённые алгоритмы](https://github.com/llirik42/Distributed-Algorithms)
+
+# Магистратура
+
+## Курс 1
+
+* [Современные методы программирования](https://github.com/llirik42/MPM)
