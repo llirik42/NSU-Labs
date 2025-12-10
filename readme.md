@@ -39,4 +39,4 @@
 
 ## Курс 1
 
-* [Современные методы программирования](https://github.com/llirik42/MPM)
+* Современные методы программирования: [лабы](https://github.com/llirik42/MPM), [проект](https://github.com/llirik42/CLisp)
