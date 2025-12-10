@@ -17,7 +17,6 @@
 
 ## Курс 3
 
-* [Объектно-ориентированный анализ и дизайн](https://github.com/llirik42/NSU-Timetable-Manager)
 * [Сетевые технологии и телекоммуникации](Bachelor/Year-3/Networks)
 * [Операционные системы](https://github.com/llirik42/OS-5th-Semester-Labs)
 * [Методы трансляции и компиляции](https://github.com/llirik42/Flow9-Labs)
@@ -26,7 +25,6 @@
 * [Основы теории управления](https://github.com/llirik42/BCT-Labs)
 * [Введение в теорию кодирования](Bachelor/Year-3/CT)
 * [Теория и практика нейронных сетей](Bachelor/Year-3/TPNN)
-* [Управление производственным процессом разработки программного обеспечения](https://github.com/Concert-Mate/Music-Service)
 * [Теоретические основы обработки информации](Bachelor/Year-3/TFIP)
 * [Правоведение](https://github.com/llirik42/Jurisprudence)
 
