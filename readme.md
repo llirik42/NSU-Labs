@@ -41,3 +41,4 @@
 
 * Современные методы программирования: [лабы](https://github.com/llirik42/MPM), [проект](https://github.com/llirik42/CLisp)
 * [Анализ данных и машинное обучение](https://github.com/llirik42/Data-analysis-ML)
+* [Потоковые алгоритмы](https://github.com/llirik42/streaming_algo_course)
